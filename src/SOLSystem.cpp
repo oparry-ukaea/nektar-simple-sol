@@ -57,9 +57,9 @@ SOLSystem::SOLSystem(
 /**
  * @brief Initialization object for SOLSystem class.
  */
-void SOLSystem::v_InitObject(bool DeclareField)
+void SOLSystem::v_InitObject()
 {
-    AdvectionSystem::v_InitObject(DeclareField);
+    AdvectionSystem::v_InitObject();
 
     ASSERTL0(m_spacedim == 1, "This solver is intended only for 1D problems.");
 

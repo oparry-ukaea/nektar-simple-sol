@@ -118,7 +118,7 @@ protected:
         const LibUtilities::SessionReaderSharedPtr& pSession,
         const SpatialDomains::MeshGraphSharedPtr& pGraph);
 
-    virtual void v_InitObject(bool DeclareFeld = true);
+    virtual void v_InitObject();
 
     void InitAdvection();
 
