@@ -1,2 +1,2 @@
 # nektar-simple-sol
-Nektar-based scrape-off solver
+Nektar-based scrape-off layer solver
