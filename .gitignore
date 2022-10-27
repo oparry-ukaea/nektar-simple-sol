@@ -35,5 +35,9 @@
 build
 buildDebug
 
+# Run directories, except templates
+runs/*
+!runs/templates
+
 #VSCode config
 .vscode
