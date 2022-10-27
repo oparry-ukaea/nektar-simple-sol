@@ -34,3 +34,6 @@
 # Build dirs
 build
 buildDebug
+
+#VSCode config
+.vscode
