@@ -44,12 +44,12 @@
 #include <SolverUtils/Diffusion/Diffusion.h>
 #include <SolverUtils/Forcing/Forcing.h>
 #include <MultiRegions/GlobalMatrixKey.h>
-#include <SolverUtils/Filters/FilterInterfaces.hpp>
 #include <LocalRegions/Expansion3D.h>
 #include <LocalRegions/Expansion2D.h>
 
 #include "VariableConverter.h"
 #include "CFSBndCond.h"
+#include "FilterInterfaces.hpp"
 
 namespace Nektar
 {
