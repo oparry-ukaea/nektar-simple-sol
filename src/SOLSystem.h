@@ -48,7 +48,6 @@
 #include <LocalRegions/Expansion2D.h>
 
 #include "VariableConverter.h"
-#include "CFSBndCond.h"
 #include "FilterInterfaces.hpp"
 
 namespace Nektar
@@ -110,9 +109,6 @@ protected:
 
     // Forcing term
     std::vector<SolverUtils::ForcingSharedPtr> m_forcing;
-
-    // Custom compressible boundary conditions
-    std::vector<CFSBndCondSharedPtr> m_bndConds;
 
     SOLSystem(
         const LibUtilities::SessionReaderSharedPtr& pSession,

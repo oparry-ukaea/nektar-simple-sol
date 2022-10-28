@@ -24,11 +24,9 @@ SET(CMAKE_INSTALL_RPATH "${NEKTAR++_LIBRARY_DIRS}")
 # Add source files.
 ADD_EXECUTABLE(SOLSolver
     src/CompressibleSolver.cpp
-    src/CFSBndCond.cpp
     src/EquationOfState.cpp
     src/ExactSolverToro.cpp
     src/IdealGasEoS.cpp
-    src/RiemannInvariantBC.cpp
     src/SOLSolver.cpp
     src/SOLSystem.cpp
     src/SourceTerms.cpp

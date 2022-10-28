@@ -91,33 +91,6 @@ void SOLSystem::v_InitObject()
     m_forcing = SolverUtils::Forcing::Load(m_session, shared_from_this(),
                                            m_fields, m_fields.size());
 
-    // User-defined boundary conditions
-    int cnt = 0;
-    for (int n = 0; n < m_fields[0]->GetBndConditions().size(); ++n)
-    {
-        std::string type =
-            m_fields[0]->GetBndConditions()[n]->GetUserDefined();
-
-        if (m_fields[0]->GetBndConditions()[n]->GetBoundaryConditionType()
-            == SpatialDomains::ePeriodic)
-        {
-            continue;
-        }
-
-        if (!type.empty())
-        {
-            m_bndConds.push_back(GetCFSBndCondFactory().CreateInstance(
-                                     type,
-                                     m_session,
-                                     m_fields,
-                                     m_traceNormals,
-                                     m_spacedim,
-                                     n,
-                                     cnt));
-        }
-        cnt += m_fields[0]->GetBndCondExpansions()[n]->GetExpSize();
-    }
-
     m_ode.DefineOdeRhs    (&SOLSystem::DoOdeRhs, this);
     m_ode.DefineProjection(&SOLSystem::DoOdeProjection, this);
 }
