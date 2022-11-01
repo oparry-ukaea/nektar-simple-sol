@@ -86,6 +86,14 @@ private:
     VariableConverterSharedPtr           m_varConv;
     Array<OneD, NekDouble> m_x;
     Array<OneD, NekDouble> m_y;
+
+    // Source parameters
+    NekDouble m_xmax;
+    NekDouble m_mu;
+    NekDouble m_sigma;
+    NekDouble m_rho_prefac;
+    NekDouble m_u_prefac;
+    NekDouble m_E_prefac;
 };
 
 }
