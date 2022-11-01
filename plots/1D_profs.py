@@ -3,8 +3,8 @@ from matplotlib import pyplot as plt
 from utils import get_plot_path, get_plot_style, get_run_root, read_all_nektar_srcs
 
 #--------------------------------------------------------------------------------------------------
-def _animate_1D_profiles(run_dir, output_fname="profs_evo.mp4", save=False, **animate_kwargs):
-    data_srcs =  read_all_nektar_srcs(run_dir,extra_fields=[("u","rhou/rho"),("T","(E-(rhou*rhou/rho)/2)/rho*(gamma-1.0)/GasConstant")])
+def _animate_1D_profiles(run_dir, chk_start=0,chk_end=100, output_fname="profs_evo.mp4", save=False, **animate_kwargs):
+    data_srcs =  read_all_nektar_srcs(run_dir,extra_fields=[("u","rhou/rho"),("T","(E-(rhou*rhou/rho)/2)/rho*(gamma-1.0)/GasConstant")],chk_start=chk_start,chk_end=chk_end)
 
     fig, axarr = plt.subplots(1,3,figsize=(15,5))
     
@@ -64,7 +64,9 @@ def _animate_1D_profiles(run_dir, output_fname="profs_evo.mp4", save=False, **an
 def main():
     template = '1DSOL'
     save     = False
-    _animate_1D_profiles(get_run_root(template), save=save)
+    chk_start = 0
+    chk_end = 100
+    _animate_1D_profiles(get_run_root(template), chk_start=chk_start, chk_end=chk_end, save=save)
 #--------------------------------------------------------------------------------------------------
 
 if __name__=='__main__':
