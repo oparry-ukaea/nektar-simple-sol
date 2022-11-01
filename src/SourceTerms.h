@@ -85,6 +85,7 @@ private:
 
     VariableConverterSharedPtr           m_varConv;
     Array<OneD, NekDouble> m_x;
+    Array<OneD, NekDouble> m_y;
 };
 
 }

@@ -61,8 +61,6 @@ void SOLSystem::v_InitObject()
 {
     AdvectionSystem::v_InitObject();
 
-    ASSERTL0(m_spacedim == 1, "This solver is intended only for 1D problems.");
-
     for (int i = 0; i < m_fields.size(); i++)
     {
         // Use BwdTrans to make sure initial condition is in solution space
@@ -76,10 +74,13 @@ void SOLSystem::v_InitObject()
     ASSERTL0(m_session->DefinesSolverInfo("UPWINDTYPE"),
              "No UPWINDTYPE defined in session.");
 
-    // Set up location of velocity vector.
-    m_vecLocs = Array<OneD, Array<OneD, NekDouble>>(1);
-    m_vecLocs[0] = Array<OneD, NekDouble>(1);
-    m_vecLocs[0][0] = 1;
+    // Set up locations of velocity vector.
+    m_vecLocs    = Array<OneD, Array<OneD, NekDouble>>(1);
+    m_vecLocs[0] = Array<OneD, NekDouble>(m_spacedim);
+    for (int i = 0; i < m_spacedim; ++i)
+    {
+        m_vecLocs[0][i] = 1 + i;
+    }
 
     // Loading parameters from session file
     m_session->LoadParameter("Gamma", m_gamma, 1.4);
@@ -255,14 +256,14 @@ void SOLSystem::SetBoundaryConditions(
         m_fields[i]->ExtractTracePhys(physarray[i], Fwd[i]);
     }
 
-    if (m_bndConds.size())
-    {
-        // Loop over user-defined boundary conditions
-        for (auto &x : m_bndConds)
-        {
-            x->Apply(Fwd, physarray, time);
-        }
-    }
+    // if (m_bndConds.size())
+    // {
+    //     // Loop over user-defined boundary conditions
+    //     for (auto &x : m_bndConds)
+    //     {
+    //         x->Apply(Fwd, physarray, time);
+    //     }
+    // }
 }
 
 /**
@@ -278,8 +279,8 @@ void SOLSystem::GetFluxVector(
     auto nVariables = physfield.size();
     auto nPts = physfield[0].size();
 
-    constexpr unsigned short maxVel = 1;
-    constexpr unsigned short maxFld = 3;
+    constexpr unsigned short maxVel = 2;
+    constexpr unsigned short maxFld = 4;
 
     // hardcoding done for performance reasons
     ASSERTL1(nVariables <= maxFld, "GetFluxVector, hard coded max fields");
@@ -290,7 +291,7 @@ void SOLSystem::GetFluxVector(
         std::array<NekDouble, maxFld> fieldTmp;
         std::array<NekDouble, maxVel> velocity;
 
-        // rearrenge and load data
+        // rearrange and load data
         for (size_t f = 0; f < nVariables; ++f)
         {
             fieldTmp[f] = physfield[f][p]; // load
@@ -299,21 +300,30 @@ void SOLSystem::GetFluxVector(
         // 1 / rho
         NekDouble oneOrho = 1.0 / fieldTmp[0];
 
-        // Flux vector for the rho equation
-        flux[0][0][p] = fieldTmp[1]; // store
-        // compute velocity
-        velocity[0] = fieldTmp[1] * oneOrho;
+        for (size_t d = 0; d < m_spacedim; ++d)
+        {
+            // Flux vector for the rho equation
+            flux[0][d][p] = fieldTmp[d + 1]; // store
+            // compute velocity
+            velocity[d] = fieldTmp[d + 1] * oneOrho;
+        }
 
         NekDouble pressure = m_varConv->GetPressure(fieldTmp.data());
-        NekDouble ePlusP = fieldTmp[2] + pressure;
+        NekDouble ePlusP   = fieldTmp[m_spacedim + 1] + pressure;
+        for (size_t f = 0; f < m_spacedim; ++f)
+        {
+            // Flux vector for the velocity fields
+            for (size_t d = 0; d < m_spacedim; ++d)
+            {
+                flux[f + 1][d][p] = velocity[d] * fieldTmp[f + 1]; // store
+            }
 
-        flux[1][0][p] = velocity[0] * fieldTmp[1]; // store
+            // Add pressure to appropriate field
+            flux[f + 1][f][p] += pressure;
 
-        // Add pressure to appropriate field
-        flux[1][0][p] += pressure;
-
-        // Flux vector for energy
-        flux[2][0][p] = ePlusP * velocity[0]; // store
+            // Flux vector for energy
+            flux[m_spacedim + 1][f][p] = ePlusP * velocity[f]; // store
+        }
     }
 }
 

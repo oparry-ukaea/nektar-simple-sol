@@ -2,7 +2,7 @@
 
 # Defaults - run in debug and output to a subdirectory tagged with the current date and time
 MODE="RELEASE"
-TEMPLATE_SUBDIR="1DSOL"
+TEMPLATE_SUBDIR="2DSOL"
 # Parse command line args
 for arg in $*; do
     case "$arg" in
