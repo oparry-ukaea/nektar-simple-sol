@@ -71,6 +71,11 @@ void SourceTerms::v_InitObject(
     pFields[0]->GetCoords(m_x,m_y);
 }
 
+NekDouble CalcGaussian(NekDouble prefac, NekDouble mu, NekDouble sigma, NekDouble x)
+{
+    return prefac * exp( -(mu - x)*(mu - x)/2/sigma/sigma );
+}
+
 void SourceTerms::v_Apply(
     const Array<OneD, MultiRegions::ExpListSharedPtr>&  pFields,
     const Array<OneD, Array<OneD, NekDouble> >&         inarray,
@@ -79,41 +84,33 @@ void SourceTerms::v_Apply(
 {
     boost::ignore_unused(time);
 
+    constexpr NekDouble rho_prefac = 3.989422804e-22 * 1e21;
+    constexpr NekDouble u_prefac   = 7.296657414e-27 * -1e26;
+    constexpr NekDouble E_prefac   = 7.978845608e-5 * 30000.0;
+    NekDouble x_max = 110.;
+    NekDouble mu = x_max/2.;
+    NekDouble sigma = 2.0;
+    
     unsigned short ndims = pFields[0]->GetGraph()->GetSpaceDimension();
-    switch(ndims)
+
+    unsigned short rho_idx = 0;
+    unsigned short u_idx   = 1;
+    unsigned short E_idx   = ndims + 1;
+
+    // S^n source term
+    for (int i = 0; i < outarray[0].size(); ++i)
     {
-        case 1:
-        {
-            NekDouble L = 110.;
-            // S^n source term
-            for (int i = 0; i < outarray[0].size(); ++i)
-            {
-                outarray[0][i] += (3.989422804e-22 * 1e21) * exp(-(L/2 - m_x[i]) * (L/2 - m_x[i]) / 8.);
-            }
-            // S^u source term
-            for (int i = 0; i < outarray[1].size(); ++i)
-            {
-                outarray[1][i] += (7.296657414e-27 * -1e26) * (
-                    (m_x[i] - L/2.0) * (2.0/L) * exp(-(L/2.0 - m_x[i]) * (L/2.0 - m_x[i]) / 8.0)
-                    );
-            }
-            // S^E source term
-            for (int i = 0; i < outarray[2].size(); ++i)
-            {
-                outarray[2][i] += (7.978845608e-5 * 30000.0) * exp(-(L/2.0 - m_x[i]) * (L/2.0 - m_x[i]) / 8.0) / 2.0;
-            }
-            break;
-        }
-        case 2:
-        {
-            // no source terms defined
-            break;
-        }
-        default:
-        {
-            // no source terms defined
-            break;
-        }
+        outarray[rho_idx][i] += CalcGaussian(rho_prefac,mu,sigma,m_x[i]);
+    }
+    // S^u source term
+    for (int i = 0; i < outarray[1].size(); ++i)
+    {
+        outarray[u_idx][i] += (m_x[i]/mu - 1.) * CalcGaussian(u_prefac,mu,sigma,m_x[i]);
+    }
+    // S^E source term
+    for (int i = 0; i < outarray[2].size(); ++i)
+    {
+        outarray[E_idx][i] += CalcGaussian(E_prefac,mu,sigma,m_x[i]) / 2.0; // Where did this factor of 1/2 come from?!?
     }
 }
 
