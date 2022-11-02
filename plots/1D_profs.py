@@ -34,8 +34,8 @@ def _animate_1D_profiles(run_dir, output_fname="profs_evo.mp4", save=False, **an
     T_ax.set_ylim(0.5,1.5)
     T_ax.set_xlabel("x")
     T_ax.set_ylabel('T')
-    Tinit = params["PINF"]/(params["GAMMA"]-1)
-    Tinit = Tinit*params["GASCONSTANT"]/(params["GAMMA"]-1)*rhoinit + rhoinit*uinit**2/2
+    Einit = params["PINF"]/(params["GAMMA"]-1)
+    Tinit = (Einit-(rhoinit*uinit**2)/2)/rhoinit*(params["GAMMA"]-1.0)/params["GASCONSTANT"]
     T_ax.axhline(y = Tinit, **(get_plot_style("line",color='grey',linestyle='--')))
 
     rho_line, = rho_ax.plot(x, x-999, **(get_plot_style("line")))
