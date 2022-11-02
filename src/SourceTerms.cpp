@@ -66,8 +66,29 @@ void SourceTerms::v_InitObject(
     m_varConv     = MemoryManager<VariableConverter>::AllocateSharedPtr(
         m_session, spacedim);
     m_x = Array<OneD, NekDouble>(nPoints);
+    m_y = Array<OneD, NekDouble>(nPoints);
+    pFields[0]->GetCoords(m_x,m_y);
 
-    pFields[0]->GetCoords(m_x);
+    //===== Set up source term constants from session =====
+    // Source term normalisation is calculated relative to the sigma=2 case
+    constexpr NekDouble sigma0 = 2.0;
+
+    // xmax should be determined from max(m_x) for all tasks... just set it via a parameter for now.
+    m_session->LoadParameter("srcs_xmax",m_xmax,110.0);
+
+    // (Gaussian sources always positioned halfway along x dimension)
+    m_mu = m_xmax/2;
+
+    // Set normalisation factors for the chosen sigma
+    m_session->LoadParameter("srcs_sigma",m_sigma,2.0);
+    m_rho_prefac = 3.989422804e-22 * 1e21 * sigma0 / m_sigma;;
+    m_u_prefac   = 7.296657414e-27 * -1e26 * sigma0 / m_sigma;
+    m_E_prefac   = 7.978845608e-5 * 30000.0 * sigma0 / m_sigma;
+}
+
+NekDouble CalcGaussian(NekDouble prefac, NekDouble mu, NekDouble sigma, NekDouble x)
+{
+    return prefac * exp( -(mu - x)*(mu - x)/2/sigma/sigma );
 }
 
 void SourceTerms::v_Apply(
@@ -77,51 +98,27 @@ void SourceTerms::v_Apply(
     const NekDouble&                                    time)
 {
     boost::ignore_unused(time);
+    unsigned short ndims = pFields[0]->GetGraph()->GetSpaceDimension();
 
-    // Source terms for each equation can be added here. Can use the m_varConv
-    // variable converter to get pressure, temperature, etc according to the
-    // equation of state.
-
-    NekDouble L = 110.;
+    unsigned short rho_idx = 0;
+    unsigned short u_idx   = 1;
+    unsigned short E_idx   = ndims + 1;
 
     // S^n source term
     for (int i = 0; i < outarray[0].size(); ++i)
     {
-        outarray[0][i] += (3.989422804e-22 * 1e21) * exp(-(L/2 - m_x[i]) * (L/2 - m_x[i]) / 8.);
+        outarray[rho_idx][i] += CalcGaussian(m_rho_prefac,m_mu,m_sigma,m_x[i]);
     }
-
     // S^u source term
     for (int i = 0; i < outarray[1].size(); ++i)
     {
-        outarray[1][i] += (7.296657414e-27 * -1e26) * (
-            (m_x[i] - L/2.0) * (2.0/L) * exp(-(L/2.0 - m_x[i]) * (L/2.0 - m_x[i]) / 8.0)
-            );
+        outarray[u_idx][i] += (m_x[i]/m_mu - 1.) * CalcGaussian(m_u_prefac,m_mu,m_sigma,m_x[i]);
     }
-
     // S^E source term
     for (int i = 0; i < outarray[2].size(); ++i)
     {
-        outarray[2][i] += (7.978845608e-5 * 30000.0) * exp(-(L/2.0 - m_x[i]) * (L/2.0 - m_x[i]) / 8.0) / 2.0;
+        outarray[E_idx][i] += CalcGaussian(m_E_prefac,m_mu,m_sigma,m_x[i]) / 2.0; // Where did this factor of 1/2 come from?!?
     }
-
-    // Sanity check
-#if 0
-    std::ofstream out("source.txt");
-    for (int i = 0; i < outarray[0].size(); ++i)
-    {
-        out << std::scientific
-            << m_x[i] << " "
-            << (3.989422804e-22 * 1e21) * exp(-(L/2 - m_x[i]) * (L/2 - m_x[i]) / 8.)
-            << " "
-            << (7.296657414e-27 * -1e26) * (
-                (m_x[i] - L/2.0) * (2.0/L) * exp(-(L/2.0 - m_x[i]) * (L/2.0 - m_x[i]) / 8.0)
-                )
-            << " "
-            << (7.978845608e-5 * 30000.0) * exp(-(L/2.0 - m_x[i]) * (L/2.0 - m_x[i]) / 8.0) / 2.0
-            << std::endl;
-    }
-    exit(0);
-#endif
 }
 
 }

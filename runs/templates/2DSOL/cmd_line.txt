@@ -1,0 +1,1 @@
+mpirun -np 8 <BIN_DIR>/SOLSolver 2DSOL.xml
