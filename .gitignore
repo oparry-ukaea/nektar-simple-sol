@@ -39,6 +39,10 @@ buildDebug
 runs/*
 !runs/templates
 
+# Plots and movies
+plots/*.mp4
+plots/*.png
+
 #VSCode config
 .vscode
 
