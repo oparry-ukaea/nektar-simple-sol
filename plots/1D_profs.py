@@ -17,7 +17,7 @@ def _animate_1D_profiles(run_dir, chk_start=0,chk_end=100, output_fname="profs_e
     rho_ax=axarr[0]
     rho_ax.set_ylim(0.9,2.5)
     rho_ax.set_xlabel("x")
-    rho_ax.set_ylabel('rho')
+    rho_ax.set_ylabel("$\rho$")
     rhoinit = params["RHOINF"]
     rho_ax.axhline(y=rhoinit, **(get_plot_style("line",color='grey',linestyle='--')))
 
@@ -55,18 +55,20 @@ def _animate_1D_profiles(run_dir, chk_start=0,chk_end=100, output_fname="profs_e
 
     if save:
         FFwriter = mpl_animation.FFMpegWriter()
-        ani.save(get_plot_path(output_fname), writer = FFwriter)
+        output_fpath = get_plot_path(output_fname)
+        ani.save(output_fpath, writer = FFwriter)
+        print(f"Wrote 1D profile animation to {output_fpath}")
     else:
         plt.show()
 #--------------------------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------------------------
 def main():
-    template = '1DSOL'
-    save     = False
+    run_lbl   = '1DSOL'
+    save      = True
     chk_start = 0
     chk_end = 100
-    _animate_1D_profiles(get_run_root(template), chk_start=chk_start, chk_end=chk_end, save=save)
+    _animate_1D_profiles(get_run_root(run_lbl), chk_start=chk_start, chk_end=chk_end, save=save)
 #--------------------------------------------------------------------------------------------------
 
 if __name__=='__main__':

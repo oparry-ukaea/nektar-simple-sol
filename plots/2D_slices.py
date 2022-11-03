@@ -67,6 +67,7 @@ def animate_rho_u_T_slices(run_dir,chk_start=0,chk_end=100,chk_stride=1,output_f
     if save:
         FFwriter = mpl_animation.FFMpegWriter()
         ani.save(output_fpath, writer = FFwriter)
+        print(f"Wrote 2D slice profiles animation to {output_fpath}")
     else:
         plt.show()
 #--------------------------------------------------------------------------------------------------
@@ -79,7 +80,7 @@ def main():
     chk_end    = 100
     save       = True
 
-    animate_rho_u_T_slices(get_run_root(run_subdir),chk_start=chk_start,chk_end=chk_end,output_fpath=get_plot_path('rho_u_T_slice.mp4'),save=save)
+    animate_rho_u_T_slices(get_run_root(run_subdir),chk_start=chk_start,chk_end=chk_end,output_fpath=get_plot_path('rho_u_T_slice_anim.mp4'),save=save)
 #--------------------------------------------------------------------------------------------------
 
 if __name__=='__main__':

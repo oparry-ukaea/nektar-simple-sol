@@ -7,7 +7,7 @@ import os.path
 import time
 
 #--------------------------------------------------------------------------------------------------
-def animate_vtus(run_dir,chk_start,chk_end,chk_stride=1,output_fpath=get_plot_path('rho_rhou_E_anim.mp4'),**kwargs):
+def animate_vtus(run_dir,chk_start,chk_end,chk_stride=1,output_fpath=get_plot_path('rho_u_T_anim.mp4'),**kwargs):
     meshes = read_vtus(run_dir,chk_start,chk_end,chk_stride,**kwargs)
 
     pl = gen_plotter(off_screen=True)
@@ -19,7 +19,7 @@ def animate_vtus(run_dir,chk_start,chk_end,chk_stride=1,output_fpath=get_plot_pa
     populate_plotter(pl,meshes[0],params)
 
     # Define update function
-    def write_frame(mesh):
+    def update(mesh):
         time.sleep(0.01)
         pl.clear()
         populate_plotter(pl,mesh,params)
@@ -30,7 +30,7 @@ def animate_vtus(run_dir,chk_start,chk_end,chk_stride=1,output_fpath=get_plot_pa
     pl.show(auto_close=False)
     pl.open_movie(output_fpath,framerate=10)
     for mesh in meshes[1:]:
-        write_frame(mesh)
+        update(mesh)
 
     # Close plotter
     pl.close()
@@ -82,7 +82,7 @@ def populate_plotter(pl,mesh,params):
 
     pl.subplot(0, 0)
     sb_args = dict(sb_args_common)
-    sb_args.update(title='rho')
+    sb_args.update(title="rho")
     pl.add_mesh(mesh,scalars='rho', clim=[0.5,2.5], show_edges=False, scalar_bar_args=sb_args)
     pl.view_xy()
 
@@ -131,13 +131,24 @@ def read_vtus(run_dir,chk_start,chk_end,chk_stride,**kwargs):
 #--------------------------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------------------------
-def plot_single_vtu(run_dir, chk_num, save=False, **kwargs):
+def plot_single_vtu(run_dir, chk_num, output_fbase='rho_u_T', save=False, **kwargs):
+    output_fpath = get_plot_path(f"{output_fbase}_{chk_num}.png")
+
     mesh = read_vtu(run_dir, chk_num, **kwargs)
-    
+
+    # Enable png output, if requested
+    plotter_args={}
+    show_args = {}
+    if save:
+        plotter_args['off_screen'] = True
+        show_args['screenshot']    = output_fpath
+
+    pl = gen_plotter(**plotter_args)
     params = get_session_params(run_dir,chk_num)
-    pl = gen_plotter()
     populate_plotter(pl,mesh,params)
-    pl.show()
+    pl.show(**show_args)
+    if save:
+        print(f"Wrote 2D animation to {output_fpath}")
 #--------------------------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------------------------
@@ -145,7 +156,6 @@ def main():
     mode     = 'animate'
     #mode     = 'single'
     run_lbl  = '2DSOL'
-    save     = False
 
     run_dir = get_run_root(run_lbl)
     
@@ -156,6 +166,7 @@ def main():
         animate_vtus(run_dir, chk_start, chk_end, chk_stride=chk_stride, file_base=run_lbl)
     elif mode=='single':
         chk_num = 75
+        save    = True
         plot_single_vtu(run_dir, chk_num, save=save, file_base=run_lbl)
     else:
         exit(f"Mode {mode} not recognised")
