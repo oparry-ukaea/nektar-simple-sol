@@ -827,15 +827,15 @@
 
     <CONDITIONS>
         <PARAMETERS>
-            <P> TimeStep       = 2e-4         </P>
-            <P> NumSteps       = 1250000      </P>
-            <P> IO_CheckSteps  = NumSteps/100 </P>
-            <P> IO_InfoSteps   = NumSteps/5000 </P>
-            <P> Gamma          = 5.0/3.0      </P>
-            <P> GasConstant    = 1.0          </P>
-            <P> pInf           = 1.0          </P>
-            <P> rhoInf         = 1.0          </P>
-            <P> uInf           = 1.0          </P>
+            <P> TimeStep       = 2e-4          </P>
+            <P> NumSteps       = 1250000       </P>
+            <P> IO_CheckSteps  = NumSteps/100  </P>
+            <P> IO_InfoSteps   = NumSteps/1000 </P>
+            <P> Gamma          = 5.0/3.0       </P>
+            <P> GasConstant    = 1.0           </P>
+            <P> pInf           = 1.0           </P>
+            <P> rhoInf         = 1.0           </P>
+            <P> uInf           = 1.0           </P>
         </PARAMETERS>
         <SOLVERINFO>
             <I PROPERTY="EQTYPE"                VALUE="SOL"                  />
