@@ -57,9 +57,9 @@ SOLSystem::SOLSystem(
 /**
  * @brief Initialization object for SOLSystem class.
  */
-void SOLSystem::v_InitObject()
+void SOLSystem::v_InitObject(bool DeclareField)
 {
-    AdvectionSystem::v_InitObject();
+    AdvectionSystem::v_InitObject(DeclareField);
 
     for (int i = 0; i < m_fields.size(); i++)
     {

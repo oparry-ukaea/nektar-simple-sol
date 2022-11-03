@@ -44,11 +44,11 @@
 #include <SolverUtils/Diffusion/Diffusion.h>
 #include <SolverUtils/Forcing/Forcing.h>
 #include <MultiRegions/GlobalMatrixKey.h>
+#include <SolverUtils/Filters/FilterInterfaces.hpp>
 #include <LocalRegions/Expansion3D.h>
 #include <LocalRegions/Expansion2D.h>
 
 #include "VariableConverter.h"
-#include "FilterInterfaces.hpp"
 
 namespace Nektar
 {
@@ -114,7 +114,7 @@ protected:
         const LibUtilities::SessionReaderSharedPtr& pSession,
         const SpatialDomains::MeshGraphSharedPtr& pGraph);
 
-    virtual void v_InitObject();
+    virtual void v_InitObject(bool DeclareField) override;
 
     void InitAdvection();
 
@@ -153,7 +153,7 @@ protected:
         Array<OneD, NekDouble>                    &tstep);
 
     virtual NekDouble v_GetTimeStep(
-        const Array<OneD, const Array<OneD, NekDouble> > &inarray);
+        const Array<OneD, const Array<OneD, NekDouble> > &inarray) override;
 
     NekDouble GetGamma()
     {
@@ -171,11 +171,11 @@ protected:
     }
 
     virtual Array<OneD, NekDouble> v_GetMaxStdVelocity(
-        const NekDouble SpeedSoundFactor);
+        const NekDouble SpeedSoundFactor) override;
 
     virtual void v_SteadyStateResidual(
         int                     step,
-        Array<OneD, NekDouble>  &L2);
+        Array<OneD, NekDouble>  &L2) override;
 };
 
 }
