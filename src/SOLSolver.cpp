@@ -33,41 +33,35 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <SolverUtils/Driver.h>
 #include <LibUtilities/BasicUtils/SessionReader.h>
+#include <SolverUtils/Driver.h>
 
 using namespace Nektar;
 using namespace Nektar::SolverUtils;
 
-int main(int argc, char *argv[])
-{
-    try
-    {
-        // Create session reader.
-        auto session = LibUtilities::SessionReader::CreateInstance(argc, argv);
+int main(int argc, char *argv[]) {
+  try {
+    // Create session reader.
+    auto session = LibUtilities::SessionReader::CreateInstance(argc, argv);
 
-        // Read the mesh and create a MeshGraph object.
-        auto graph = SpatialDomains::MeshGraph::Read(session);
+    // Read the mesh and create a MeshGraph object.
+    auto graph = SpatialDomains::MeshGraph::Read(session);
 
-        // Create driver.
-        std::string driverName;
-        session->LoadSolverInfo("Driver", driverName, "Standard");
-        auto drv = GetDriverFactory().CreateInstance(driverName, session, graph);
+    // Create driver.
+    std::string driverName;
+    session->LoadSolverInfo("Driver", driverName, "Standard");
+    auto drv = GetDriverFactory().CreateInstance(driverName, session, graph);
 
-        // Execute driver
-        drv->Execute();
+    // Execute driver
+    drv->Execute();
 
-        // Finalise session
-        session->Finalise();
-    }
-    catch (const std::runtime_error& e)
-    {
-        return 1;
-    }
-    catch (const std::string& eStr)
-    {
-        std::cout << "Error: " << eStr << std::endl;
-    }
+    // Finalise session
+    session->Finalise();
+  } catch (const std::runtime_error &e) {
+    return 1;
+  } catch (const std::string &eStr) {
+    std::cout << "Error: " << eStr << std::endl;
+  }
 
-    return 0;
+  return 0;
 }

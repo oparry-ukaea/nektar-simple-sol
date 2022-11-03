@@ -40,8 +40,7 @@
 
 #include <LibUtilities/SimdLib/tinysimd.hpp>
 
-namespace Nektar
-{
+namespace Nektar {
 //  Forward declaration
 class EquationOfState;
 
@@ -63,72 +62,65 @@ using vec_t = tinysimd::simd<NekDouble>;
  * @brief Encapsulates equations of state allowing us to obtain thermodynamic
  *        properties: most relations are in the form X(rho,e)
  */
-class EquationOfState
-{
+class EquationOfState {
 public:
-    virtual ~EquationOfState()
-    {
-    }
+  virtual ~EquationOfState() {}
 
-
-    /// Calculate the temperature
-    virtual NekDouble GetTemperature(const NekDouble& rho, const NekDouble& e) = 0;
-
-    virtual vec_t GetTemperature(const vec_t& rho, const vec_t& e) = 0;
-
-    /// Calculate the pressure
-    virtual NekDouble GetPressure(const NekDouble& rho, const NekDouble& e) = 0;
-
-    virtual vec_t GetPressure(const vec_t& rho, const vec_t& e) = 0;
-
-    /// Calculate the sound speed
-    NekDouble GetSoundSpeed(const NekDouble &rho, const NekDouble &e);
-
-    /// Calculate the entropy
-    NekDouble GetEntropy(const NekDouble &rho, const NekDouble &e);
-
-    /// Calculate the partial derivative of P(rho,e) with respect to rho
-    NekDouble GetDPDrho_e(const NekDouble &rho, const NekDouble &e);
-
-    /// Calculate the partial derivative of P(rho,e) with respect to e
-    NekDouble GetDPDe_rho(const NekDouble &rho, const NekDouble &e);
-
-    /// Obtain the internal energy from rho and P
-    NekDouble GetEFromRhoP(const NekDouble &rho, const NekDouble &p);
-
-    /// Obtain the density from P and T
-    NekDouble GetRhoFromPT(const NekDouble &p, const NekDouble &T);
-
-protected:
-    NekDouble m_gamma;
-    NekDouble m_gasConstant;
-    NekDouble m_gammaMone;
-    NekDouble m_gammaMoneOgasConst;
-
-    /// Constructor
-    EquationOfState(const LibUtilities::SessionReaderSharedPtr &pSession);
-
-    /// Programmatic Constructor
-    EquationOfState(const NekDouble &gamma, const NekDouble &gasConstant);
-
-    virtual NekDouble v_GetSoundSpeed(const NekDouble &rho, const NekDouble &e);
-
-    virtual NekDouble v_GetEntropy(const NekDouble &rho,
+  /// Calculate the temperature
+  virtual NekDouble GetTemperature(const NekDouble &rho,
                                    const NekDouble &e) = 0;
 
-    virtual NekDouble v_GetDPDrho_e(const NekDouble &rho,
-                                    const NekDouble &e) = 0;
+  virtual vec_t GetTemperature(const vec_t &rho, const vec_t &e) = 0;
 
-    virtual NekDouble v_GetDPDe_rho(const NekDouble &rho,
-                                    const NekDouble &e) = 0;
+  /// Calculate the pressure
+  virtual NekDouble GetPressure(const NekDouble &rho, const NekDouble &e) = 0;
 
-    virtual NekDouble v_GetEFromRhoP(const NekDouble &rho,
-                                     const NekDouble &p) = 0;
+  virtual vec_t GetPressure(const vec_t &rho, const vec_t &e) = 0;
 
-    virtual NekDouble v_GetRhoFromPT(const NekDouble &rho,
-                                     const NekDouble &p) = 0;
+  /// Calculate the sound speed
+  NekDouble GetSoundSpeed(const NekDouble &rho, const NekDouble &e);
 
+  /// Calculate the entropy
+  NekDouble GetEntropy(const NekDouble &rho, const NekDouble &e);
+
+  /// Calculate the partial derivative of P(rho,e) with respect to rho
+  NekDouble GetDPDrho_e(const NekDouble &rho, const NekDouble &e);
+
+  /// Calculate the partial derivative of P(rho,e) with respect to e
+  NekDouble GetDPDe_rho(const NekDouble &rho, const NekDouble &e);
+
+  /// Obtain the internal energy from rho and P
+  NekDouble GetEFromRhoP(const NekDouble &rho, const NekDouble &p);
+
+  /// Obtain the density from P and T
+  NekDouble GetRhoFromPT(const NekDouble &p, const NekDouble &T);
+
+protected:
+  NekDouble m_gamma;
+  NekDouble m_gasConstant;
+  NekDouble m_gammaMone;
+  NekDouble m_gammaMoneOgasConst;
+
+  /// Constructor
+  EquationOfState(const LibUtilities::SessionReaderSharedPtr &pSession);
+
+  /// Programmatic Constructor
+  EquationOfState(const NekDouble &gamma, const NekDouble &gasConstant);
+
+  virtual NekDouble v_GetSoundSpeed(const NekDouble &rho, const NekDouble &e);
+
+  virtual NekDouble v_GetEntropy(const NekDouble &rho, const NekDouble &e) = 0;
+
+  virtual NekDouble v_GetDPDrho_e(const NekDouble &rho, const NekDouble &e) = 0;
+
+  virtual NekDouble v_GetDPDe_rho(const NekDouble &rho, const NekDouble &e) = 0;
+
+  virtual NekDouble v_GetEFromRhoP(const NekDouble &rho,
+                                   const NekDouble &p) = 0;
+
+  virtual NekDouble v_GetRhoFromPT(const NekDouble &rho,
+                                   const NekDouble &p) = 0;
 };
-}
+} // namespace Nektar
 
 #endif

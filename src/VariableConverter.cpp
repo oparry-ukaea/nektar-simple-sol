@@ -39,35 +39,31 @@
 
 using namespace std;
 
-namespace Nektar
-{
+namespace Nektar {
 VariableConverter::VariableConverter(
     const LibUtilities::SessionReaderSharedPtr &pSession, const int spaceDim)
-    : m_session(pSession), m_spacedim(spaceDim)
-{
-    // Create equation of state object
-    std::string eosType;
-    m_session->LoadSolverInfo("EquationOfState", eosType, "IdealGas");
-    m_eos = GetEquationOfStateFactory().CreateInstance(eosType, m_session);
+    : m_session(pSession), m_spacedim(spaceDim) {
+  // Create equation of state object
+  std::string eosType;
+  m_session->LoadSolverInfo("EquationOfState", eosType, "IdealGas");
+  m_eos = GetEquationOfStateFactory().CreateInstance(eosType, m_session);
 
-    // Parameters for dynamic viscosity
-    m_session->LoadParameter("pInf", m_pInf, 101325);
-    m_session->LoadParameter("rhoInf", m_rhoInf, 1.225);
-    m_session->LoadParameter("GasConstant", m_gasConstant, 287.058);
-    m_session->LoadParameter("mu", m_mu, 1.78e-05);
-    m_oneOverT_star  = (m_rhoInf * m_gasConstant) / m_pInf;
+  // Parameters for dynamic viscosity
+  m_session->LoadParameter("pInf", m_pInf, 101325);
+  m_session->LoadParameter("rhoInf", m_rhoInf, 1.225);
+  m_session->LoadParameter("GasConstant", m_gasConstant, 287.058);
+  m_session->LoadParameter("mu", m_mu, 1.78e-05);
+  m_oneOverT_star = (m_rhoInf * m_gasConstant) / m_pInf;
 
-    // Parameters for sensor
-    m_session->LoadParameter("Skappa", m_Skappa, -1.0);
-    m_session->LoadParameter("Kappa", m_Kappa, 0.25);
+  // Parameters for sensor
+  m_session->LoadParameter("Skappa", m_Skappa, -1.0);
+  m_session->LoadParameter("Kappa", m_Kappa, 0.25);
 }
 
 /**
  * @brief Destructor for VariableConverter class.
  */
-VariableConverter::~VariableConverter()
-{
-}
+VariableConverter::~VariableConverter() {}
 
 /**
  * @brief Compute the dynamic energy
@@ -75,20 +71,18 @@ VariableConverter::~VariableConverter()
  */
 void VariableConverter::GetDynamicEnergy(
     const Array<OneD, const Array<OneD, NekDouble>> &physfield,
-    Array<OneD, NekDouble> &energy)
-{
-    size_t nPts = physfield[m_spacedim + 1].size();
-    Vmath::Zero(nPts, energy, 1);
+    Array<OneD, NekDouble> &energy) {
+  size_t nPts = physfield[m_spacedim + 1].size();
+  Vmath::Zero(nPts, energy, 1);
 
-    // tmp = (rho * u_i)^2
-    for (int i = 0; i < m_spacedim; ++i)
-    {
-        Vmath::Vvtvp(nPts, physfield[i + 1], 1, physfield[i + 1], 1, energy, 1,
-                     energy, 1);
-    }
-    // Divide by rho and multiply by 0.5 --> tmp = 0.5 * rho * u^2
-    Vmath::Vdiv(nPts, energy, 1, physfield[0], 1, energy, 1);
-    Vmath::Smul(nPts, 0.5, energy, 1, energy, 1);
+  // tmp = (rho * u_i)^2
+  for (int i = 0; i < m_spacedim; ++i) {
+    Vmath::Vvtvp(nPts, physfield[i + 1], 1, physfield[i + 1], 1, energy, 1,
+                 energy, 1);
+  }
+  // Divide by rho and multiply by 0.5 --> tmp = 0.5 * rho * u^2
+  Vmath::Vdiv(nPts, energy, 1, physfield[0], 1, energy, 1);
+  Vmath::Smul(nPts, 0.5, energy, 1, energy, 1);
 }
 
 /**
@@ -97,17 +91,16 @@ void VariableConverter::GetDynamicEnergy(
  */
 void VariableConverter::GetInternalEnergy(
     const Array<OneD, const Array<OneD, NekDouble>> &physfield,
-    Array<OneD, NekDouble> &energy)
-{
-    int nPts = physfield[0].size();
-    Array<OneD, NekDouble> tmp(nPts);
+    Array<OneD, NekDouble> &energy) {
+  int nPts = physfield[0].size();
+  Array<OneD, NekDouble> tmp(nPts);
 
-    GetDynamicEnergy(physfield, tmp);
+  GetDynamicEnergy(physfield, tmp);
 
-    // Calculate rhoe = E - rho*V^2/2
-    Vmath::Vsub(nPts, physfield[m_spacedim + 1], 1, tmp, 1, energy, 1);
-    // Divide by rho
-    Vmath::Vdiv(nPts, energy, 1, physfield[0], 1, energy, 1);
+  // Calculate rhoe = E - rho*V^2/2
+  Vmath::Vsub(nPts, physfield[m_spacedim + 1], 1, tmp, 1, energy, 1);
+  // Divide by rho
+  Vmath::Vdiv(nPts, energy, 1, physfield[0], 1, energy, 1);
 }
 
 /**
@@ -115,19 +108,18 @@ void VariableConverter::GetInternalEnergy(
  */
 void VariableConverter::GetEnthalpy(
     const Array<OneD, const Array<OneD, NekDouble>> &physfield,
-    Array<OneD, NekDouble> &enthalpy)
-{
-    int nPts = physfield[0].size();
-    Array<OneD, NekDouble> energy(nPts, 0.0);
-    Array<OneD, NekDouble> pressure(nPts, 0.0);
+    Array<OneD, NekDouble> &enthalpy) {
+  int nPts = physfield[0].size();
+  Array<OneD, NekDouble> energy(nPts, 0.0);
+  Array<OneD, NekDouble> pressure(nPts, 0.0);
 
-    GetInternalEnergy(physfield, energy);
-    GetPressure(physfield, pressure);
+  GetInternalEnergy(physfield, energy);
+  GetPressure(physfield, pressure);
 
-    // Calculate p/rho
-    Vmath::Vdiv(nPts, pressure, 1, physfield[0], 1, enthalpy, 1);
-    // Calculate h = e + p/rho
-    Vmath::Vadd(nPts, energy, 1, enthalpy, 1, enthalpy, 1);
+  // Calculate p/rho
+  Vmath::Vdiv(nPts, pressure, 1, physfield[0], 1, enthalpy, 1);
+  // Calculate h = e + p/rho
+  Vmath::Vadd(nPts, energy, 1, enthalpy, 1, enthalpy, 1);
 }
 
 /**
@@ -139,14 +131,12 @@ void VariableConverter::GetEnthalpy(
  */
 void VariableConverter::GetVelocityVector(
     const Array<OneD, Array<OneD, NekDouble>> &physfield,
-    Array<OneD, Array<OneD, NekDouble>> &velocity)
-{
-    const int nPts = physfield[0].size();
+    Array<OneD, Array<OneD, NekDouble>> &velocity) {
+  const int nPts = physfield[0].size();
 
-    for (int i = 0; i < m_spacedim; ++i)
-    {
-        Vmath::Vdiv(nPts, physfield[1 + i], 1, physfield[0], 1, velocity[i], 1);
-    }
+  for (int i = 0; i < m_spacedim; ++i) {
+    Vmath::Vdiv(nPts, physfield[1 + i], 1, physfield[0], 1, velocity[i], 1);
+  }
 }
 
 /**
@@ -158,23 +148,21 @@ void VariableConverter::GetVelocityVector(
  */
 void VariableConverter::GetMach(Array<OneD, Array<OneD, NekDouble>> &physfield,
                                 Array<OneD, NekDouble> &soundspeed,
-                                Array<OneD, NekDouble> &mach)
-{
-    const int nPts = physfield[0].size();
+                                Array<OneD, NekDouble> &mach) {
+  const int nPts = physfield[0].size();
 
-    Vmath::Vmul(nPts, physfield[1], 1, physfield[1], 1, mach, 1);
+  Vmath::Vmul(nPts, physfield[1], 1, physfield[1], 1, mach, 1);
 
-    for (int i = 1; i < m_spacedim; ++i)
-    {
-        Vmath::Vvtvp(nPts, physfield[1 + i], 1, physfield[1 + i], 1, mach, 1,
-                     mach, 1);
-    }
+  for (int i = 1; i < m_spacedim; ++i) {
+    Vmath::Vvtvp(nPts, physfield[1 + i], 1, physfield[1 + i], 1, mach, 1, mach,
+                 1);
+  }
 
-    Vmath::Vdiv(nPts, mach, 1, physfield[0], 1, mach, 1);
-    Vmath::Vdiv(nPts, mach, 1, physfield[0], 1, mach, 1);
-    Vmath::Vsqrt(nPts, mach, 1, mach, 1);
+  Vmath::Vdiv(nPts, mach, 1, physfield[0], 1, mach, 1);
+  Vmath::Vdiv(nPts, mach, 1, physfield[0], 1, mach, 1);
+  Vmath::Vsqrt(nPts, mach, 1, mach, 1);
 
-    Vmath::Vdiv(nPts, mach, 1, soundspeed, 1, mach, 1);
+  Vmath::Vdiv(nPts, mach, 1, soundspeed, 1, mach, 1);
 }
 
 /**
@@ -191,14 +179,13 @@ void VariableConverter::GetMach(Array<OneD, Array<OneD, NekDouble>> &physfield,
  * @param mu           The resulting dynamic viscosity.
  */
 void VariableConverter::GetDynamicViscosity(
-    const Array<OneD, const NekDouble> &temperature, Array<OneD, NekDouble> &mu)
-{
-    const int nPts    = temperature.size();
+    const Array<OneD, const NekDouble> &temperature,
+    Array<OneD, NekDouble> &mu) {
+  const int nPts = temperature.size();
 
-    for (int i = 0; i < nPts; ++i)
-    {
-        mu[i] = GetDynamicViscosity(temperature[i]);
-    }
+  for (int i = 0; i < nPts; ++i) {
+    mu[i] = GetDynamicViscosity(temperature[i]);
+  }
 }
 
 /**
@@ -211,138 +198,118 @@ void VariableConverter::GetDynamicViscosity(
  * @param mu           The resulting dynamic viscosity.
  */
 void VariableConverter::GetDmuDT(
-    const Array<OneD, const NekDouble>  &temperature,
-    const Array<OneD, const NekDouble>  &mu,
-          Array<OneD, NekDouble>        &DmuDT)
-{
-    const int nPts      = temperature.size();
-    NekDouble tmp       = 0.0;
+    const Array<OneD, const NekDouble> &temperature,
+    const Array<OneD, const NekDouble> &mu, Array<OneD, NekDouble> &DmuDT) {
+  const int nPts = temperature.size();
+  NekDouble tmp = 0.0;
 
-    for (int i = 0; i < nPts; ++i)
-    {
-        tmp = 0.5* (temperature[i]+3.0*110.0)/
-                        (temperature[i]*(temperature[i]+110.0));
-        DmuDT[i] = mu[i]*tmp;
-    }
+  for (int i = 0; i < nPts; ++i) {
+    tmp = 0.5 * (temperature[i] + 3.0 * 110.0) /
+          (temperature[i] * (temperature[i] + 110.0));
+    DmuDT[i] = mu[i] * tmp;
+  }
 }
 
 void VariableConverter::GetAbsoluteVelocity(
     const Array<OneD, const Array<OneD, NekDouble>> &physfield,
-    Array<OneD, NekDouble> &Vtot)
-{
-    const int nPts = physfield[0].size();
+    Array<OneD, NekDouble> &Vtot) {
+  const int nPts = physfield[0].size();
 
-    // Getting the velocity vector on the 2D normal space
-    Array<OneD, Array<OneD, NekDouble>> velocity(m_spacedim);
+  // Getting the velocity vector on the 2D normal space
+  Array<OneD, Array<OneD, NekDouble>> velocity(m_spacedim);
 
-    Vmath::Zero(Vtot.size(), Vtot, 1);
+  Vmath::Zero(Vtot.size(), Vtot, 1);
 
-    for (int i = 0; i < m_spacedim; ++i)
-    {
-        velocity[i] = Array<OneD, NekDouble>(nPts);
-    }
+  for (int i = 0; i < m_spacedim; ++i) {
+    velocity[i] = Array<OneD, NekDouble>(nPts);
+  }
 
-    GetVelocityVector(physfield, velocity);
+  GetVelocityVector(physfield, velocity);
 
-    for (int i = 0; i < m_spacedim; ++i)
-    {
-        Vmath::Vvtvp(nPts, velocity[i], 1, velocity[i], 1, Vtot, 1, Vtot, 1);
-    }
+  for (int i = 0; i < m_spacedim; ++i) {
+    Vmath::Vvtvp(nPts, velocity[i], 1, velocity[i], 1, Vtot, 1, Vtot, 1);
+  }
 
-    Vmath::Vsqrt(nPts, Vtot, 1, Vtot, 1);
+  Vmath::Vsqrt(nPts, Vtot, 1, Vtot, 1);
 }
 
 void VariableConverter::GetSensor(
     const MultiRegions::ExpListSharedPtr &field,
     const Array<OneD, const Array<OneD, NekDouble>> &physarray,
     Array<OneD, NekDouble> &Sensor, Array<OneD, NekDouble> &SensorKappa,
-    int offset)
-{
-    NekDouble Skappa;
-    NekDouble order;
-    Array<OneD, NekDouble> tmp;
-    Array<OneD, int> expOrderElement = field->EvalBasisNumModesMaxPerExp();
+    int offset) {
+  NekDouble Skappa;
+  NekDouble order;
+  Array<OneD, NekDouble> tmp;
+  Array<OneD, int> expOrderElement = field->EvalBasisNumModesMaxPerExp();
 
-    for (int e = 0; e < field->GetExpSize(); e++)
-    {
-        int numModesElement = expOrderElement[e];
-        int nElmtPoints     = field->GetExp(e)->GetTotPoints();
-        int physOffset      = field->GetPhys_Offset(e);
-        int nElmtCoeffs     = field->GetExp(e)->GetNcoeffs();
-        int numCutOff       = numModesElement - offset;
+  for (int e = 0; e < field->GetExpSize(); e++) {
+    int numModesElement = expOrderElement[e];
+    int nElmtPoints = field->GetExp(e)->GetTotPoints();
+    int physOffset = field->GetPhys_Offset(e);
+    int nElmtCoeffs = field->GetExp(e)->GetNcoeffs();
+    int numCutOff = numModesElement - offset;
 
-        if (numModesElement <= offset)
-        {
-            Vmath::Fill(nElmtPoints, 0.0,
-                    tmp = Sensor + physOffset, 1);
-            Vmath::Fill(nElmtPoints, 0.0,
-                    tmp = SensorKappa + physOffset, 1);
-            continue;
-        }
-
-        // create vector to save the solution points per element at P = p;
-        Array<OneD, NekDouble> elmtPhys(nElmtPoints,
-            tmp = physarray[0] + physOffset);
-        // Compute coefficients
-        Array<OneD, NekDouble> elmtCoeffs(nElmtCoeffs, 0.0);
-        field->GetExp(e)->FwdTrans(elmtPhys, elmtCoeffs);
-
-        // ReduceOrderCoeffs reduces the polynomial order of the solution
-        // that is represented by the coeffs given as an inarray. This is
-        // done by projecting the higher order solution onto the orthogonal
-        // basis and padding the higher order coefficients with zeros.
-        Array<OneD, NekDouble> reducedElmtCoeffs(nElmtCoeffs, 0.0);
-        field->GetExp(e)->ReduceOrderCoeffs(numCutOff, elmtCoeffs,
-                                            reducedElmtCoeffs);
-
-        Array<OneD, NekDouble> reducedElmtPhys(nElmtPoints, 0.0);
-        field->GetExp(e)->BwdTrans(reducedElmtCoeffs, reducedElmtPhys);
-
-        NekDouble numerator   = 0.0;
-        NekDouble denominator = 0.0;
-
-        // Determining the norm of the numerator of the Sensor
-        Array<OneD, NekDouble> difference(nElmtPoints, 0.0);
-        Vmath::Vsub(nElmtPoints, elmtPhys, 1, reducedElmtPhys, 1, difference,
-                    1);
-
-        numerator = Vmath::Dot(nElmtPoints, difference, difference);
-        denominator = Vmath::Dot(nElmtPoints, elmtPhys, elmtPhys);
-
-        NekDouble elmtSensor = sqrt(numerator / denominator);
-        elmtSensor = log10(max(elmtSensor, NekConstants::kNekSqrtTol));
-
-        Vmath::Fill(nElmtPoints, elmtSensor, tmp = Sensor + physOffset, 1);
-
-        // Compute reference value for sensor
-        order = max(numModesElement-1, 1);
-        if (order > 0 )
-        {
-            Skappa = m_Skappa - 4.25 * log10(static_cast<NekDouble>(order));
-        }
-        else
-        {
-            Skappa = 0.0;
-        }
-
-        // Compute artificial viscosity
-        NekDouble elmtSensorKappa;
-        if (elmtSensor < (Skappa-m_Kappa))
-        {
-            elmtSensorKappa = 0;
-        }
-        else if (elmtSensor > (Skappa + m_Kappa))
-        {
-            elmtSensorKappa = 1.0;
-        }
-        else
-        {
-            elmtSensorKappa = 0.5 *
-                (1 + sin(M_PI * (elmtSensor - Skappa) / (2 * m_Kappa)));
-        }
-        Vmath::Fill(nElmtPoints, elmtSensorKappa,
-                tmp = SensorKappa + physOffset, 1);
+    if (numModesElement <= offset) {
+      Vmath::Fill(nElmtPoints, 0.0, tmp = Sensor + physOffset, 1);
+      Vmath::Fill(nElmtPoints, 0.0, tmp = SensorKappa + physOffset, 1);
+      continue;
     }
+
+    // create vector to save the solution points per element at P = p;
+    Array<OneD, NekDouble> elmtPhys(nElmtPoints,
+                                    tmp = physarray[0] + physOffset);
+    // Compute coefficients
+    Array<OneD, NekDouble> elmtCoeffs(nElmtCoeffs, 0.0);
+    field->GetExp(e)->FwdTrans(elmtPhys, elmtCoeffs);
+
+    // ReduceOrderCoeffs reduces the polynomial order of the solution
+    // that is represented by the coeffs given as an inarray. This is
+    // done by projecting the higher order solution onto the orthogonal
+    // basis and padding the higher order coefficients with zeros.
+    Array<OneD, NekDouble> reducedElmtCoeffs(nElmtCoeffs, 0.0);
+    field->GetExp(e)->ReduceOrderCoeffs(numCutOff, elmtCoeffs,
+                                        reducedElmtCoeffs);
+
+    Array<OneD, NekDouble> reducedElmtPhys(nElmtPoints, 0.0);
+    field->GetExp(e)->BwdTrans(reducedElmtCoeffs, reducedElmtPhys);
+
+    NekDouble numerator = 0.0;
+    NekDouble denominator = 0.0;
+
+    // Determining the norm of the numerator of the Sensor
+    Array<OneD, NekDouble> difference(nElmtPoints, 0.0);
+    Vmath::Vsub(nElmtPoints, elmtPhys, 1, reducedElmtPhys, 1, difference, 1);
+
+    numerator = Vmath::Dot(nElmtPoints, difference, difference);
+    denominator = Vmath::Dot(nElmtPoints, elmtPhys, elmtPhys);
+
+    NekDouble elmtSensor = sqrt(numerator / denominator);
+    elmtSensor = log10(max(elmtSensor, NekConstants::kNekSqrtTol));
+
+    Vmath::Fill(nElmtPoints, elmtSensor, tmp = Sensor + physOffset, 1);
+
+    // Compute reference value for sensor
+    order = max(numModesElement - 1, 1);
+    if (order > 0) {
+      Skappa = m_Skappa - 4.25 * log10(static_cast<NekDouble>(order));
+    } else {
+      Skappa = 0.0;
+    }
+
+    // Compute artificial viscosity
+    NekDouble elmtSensorKappa;
+    if (elmtSensor < (Skappa - m_Kappa)) {
+      elmtSensorKappa = 0;
+    } else if (elmtSensor > (Skappa + m_Kappa)) {
+      elmtSensorKappa = 1.0;
+    } else {
+      elmtSensorKappa =
+          0.5 * (1 + sin(M_PI * (elmtSensor - Skappa) / (2 * m_Kappa)));
+    }
+    Vmath::Fill(nElmtPoints, elmtSensorKappa, tmp = SensorKappa + physOffset,
+                1);
+  }
 }
 
 /**
@@ -353,17 +320,15 @@ void VariableConverter::GetSensor(
  */
 void VariableConverter::GetPressure(
     const Array<OneD, const Array<OneD, NekDouble>> &physfield,
-    Array<OneD, NekDouble> &pressure)
-{
-    int nPts = physfield[0].size();
+    Array<OneD, NekDouble> &pressure) {
+  int nPts = physfield[0].size();
 
-    Array<OneD, NekDouble> energy(nPts);
-    GetInternalEnergy(physfield, energy);
+  Array<OneD, NekDouble> energy(nPts);
+  GetInternalEnergy(physfield, energy);
 
-    for (int i = 0; i < nPts; ++i)
-    {
-        pressure[i] = m_eos->GetPressure(physfield[0][i], energy[i]);
-    }
+  for (int i = 0; i < nPts; ++i) {
+    pressure[i] = m_eos->GetPressure(physfield[0][i], energy[i]);
+  }
 }
 
 /**
@@ -374,17 +339,15 @@ void VariableConverter::GetPressure(
  */
 void VariableConverter::GetTemperature(
     const Array<OneD, const Array<OneD, NekDouble>> &physfield,
-    Array<OneD, NekDouble> &temperature)
-{
-    int nPts = physfield[0].size();
+    Array<OneD, NekDouble> &temperature) {
+  int nPts = physfield[0].size();
 
-    Array<OneD, NekDouble> energy(nPts);
-    GetInternalEnergy(physfield, energy);
+  Array<OneD, NekDouble> energy(nPts);
+  GetInternalEnergy(physfield, energy);
 
-    for (int i = 0; i < nPts; ++i)
-    {
-        temperature[i] = m_eos->GetTemperature(physfield[0][i], energy[i]);
-    }
+  for (int i = 0; i < nPts; ++i) {
+    temperature[i] = m_eos->GetTemperature(physfield[0][i], energy[i]);
+  }
 }
 
 /**
@@ -395,17 +358,15 @@ void VariableConverter::GetTemperature(
  */
 void VariableConverter::GetSoundSpeed(
     const Array<OneD, const Array<OneD, NekDouble>> &physfield,
-    Array<OneD, NekDouble> &soundspeed)
-{
-    int nPts = physfield[0].size();
+    Array<OneD, NekDouble> &soundspeed) {
+  int nPts = physfield[0].size();
 
-    Array<OneD, NekDouble> energy(nPts);
-    GetInternalEnergy(physfield, energy);
+  Array<OneD, NekDouble> energy(nPts);
+  GetInternalEnergy(physfield, energy);
 
-    for (int i = 0; i < nPts; ++i)
-    {
-        soundspeed[i] = m_eos->GetSoundSpeed(physfield[0][i], energy[i]);
-    }
+  for (int i = 0; i < nPts; ++i) {
+    soundspeed[i] = m_eos->GetSoundSpeed(physfield[0][i], energy[i]);
+  }
 }
 
 /**
@@ -416,17 +377,15 @@ void VariableConverter::GetSoundSpeed(
  */
 void VariableConverter::GetEntropy(
     const Array<OneD, const Array<OneD, NekDouble>> &physfield,
-    Array<OneD, NekDouble> &entropy)
-{
-    int nPts = physfield[0].size();
+    Array<OneD, NekDouble> &entropy) {
+  int nPts = physfield[0].size();
 
-    Array<OneD, NekDouble> energy(nPts);
-    GetInternalEnergy(physfield, energy);
+  Array<OneD, NekDouble> energy(nPts);
+  GetInternalEnergy(physfield, energy);
 
-    for (int i = 0; i < nPts; ++i)
-    {
-        entropy[i] = m_eos->GetEntropy(physfield[0][i], energy[i]);
-    }
+  for (int i = 0; i < nPts; ++i) {
+    entropy[i] = m_eos->GetEntropy(physfield[0][i], energy[i]);
+  }
 }
 
 /**
@@ -438,14 +397,12 @@ void VariableConverter::GetEntropy(
  */
 void VariableConverter::GetEFromRhoP(const Array<OneD, NekDouble> &rho,
                                      const Array<OneD, NekDouble> &pressure,
-                                     Array<OneD, NekDouble> &energy)
-{
-    int nPts = rho.size();
+                                     Array<OneD, NekDouble> &energy) {
+  int nPts = rho.size();
 
-    for (int i = 0; i < nPts; ++i)
-    {
-        energy[i] = m_eos->GetEFromRhoP(rho[i], pressure[i]);
-    }
+  for (int i = 0; i < nPts; ++i) {
+    energy[i] = m_eos->GetEFromRhoP(rho[i], pressure[i]);
+  }
 }
 
 /**
@@ -457,14 +414,12 @@ void VariableConverter::GetEFromRhoP(const Array<OneD, NekDouble> &rho,
  */
 void VariableConverter::GetRhoFromPT(const Array<OneD, NekDouble> &pressure,
                                      const Array<OneD, NekDouble> &temperature,
-                                     Array<OneD, NekDouble> &rho)
-{
-    int nPts = pressure.size();
+                                     Array<OneD, NekDouble> &rho) {
+  int nPts = pressure.size();
 
-    for (int i = 0; i < nPts; ++i)
-    {
-        rho[i] = m_eos->GetRhoFromPT(pressure[i], temperature[i]);
-    }
+  for (int i = 0; i < nPts; ++i) {
+    rho[i] = m_eos->GetRhoFromPT(pressure[i], temperature[i]);
+  }
 }
 
-}
+} // namespace Nektar

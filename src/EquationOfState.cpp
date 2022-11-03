@@ -36,74 +36,69 @@
 
 using namespace std;
 
-namespace Nektar
-{
-EquationOfStateFactory &GetEquationOfStateFactory()
-{
-    static EquationOfStateFactory instance;
-    return instance;
+namespace Nektar {
+EquationOfStateFactory &GetEquationOfStateFactory() {
+  static EquationOfStateFactory instance;
+  return instance;
 }
 
 EquationOfState::EquationOfState(
-    const LibUtilities::SessionReaderSharedPtr &pSession)
-{
-    pSession->LoadParameter("Gamma", m_gamma, 1.4);
-    pSession->LoadParameter("GasConstant", m_gasConstant, 287.058);
+    const LibUtilities::SessionReaderSharedPtr &pSession) {
+  pSession->LoadParameter("Gamma", m_gamma, 1.4);
+  pSession->LoadParameter("GasConstant", m_gasConstant, 287.058);
 
-    m_gammaMone = m_gamma - 1.0;
-    m_gammaMoneOgasConst = m_gammaMone / m_gasConstant;
+  m_gammaMone = m_gamma - 1.0;
+  m_gammaMoneOgasConst = m_gammaMone / m_gasConstant;
 }
 
-EquationOfState::EquationOfState( const NekDouble &gamma,
-    const NekDouble &gasConstant): m_gamma{gamma}, m_gasConstant{gasConstant}{}
+EquationOfState::EquationOfState(const NekDouble &gamma,
+                                 const NekDouble &gasConstant)
+    : m_gamma{gamma}, m_gasConstant{gasConstant} {}
 
 NekDouble EquationOfState::GetSoundSpeed(const NekDouble &rho,
-                                         const NekDouble &e)
-{
-    return v_GetSoundSpeed(rho, e);
+                                         const NekDouble &e) {
+  return v_GetSoundSpeed(rho, e);
 }
 
-NekDouble EquationOfState::GetEntropy(const NekDouble &rho, const NekDouble &e)
-{
-    return v_GetEntropy(rho, e);
+NekDouble EquationOfState::GetEntropy(const NekDouble &rho,
+                                      const NekDouble &e) {
+  return v_GetEntropy(rho, e);
 }
 
-NekDouble EquationOfState::GetDPDrho_e(const NekDouble &rho, const NekDouble &e)
-{
-    return v_GetDPDrho_e(rho, e);
+NekDouble EquationOfState::GetDPDrho_e(const NekDouble &rho,
+                                       const NekDouble &e) {
+  return v_GetDPDrho_e(rho, e);
 }
 
-NekDouble EquationOfState::GetDPDe_rho(const NekDouble &rho, const NekDouble &e)
-{
-    return v_GetDPDe_rho(rho, e);
+NekDouble EquationOfState::GetDPDe_rho(const NekDouble &rho,
+                                       const NekDouble &e) {
+  return v_GetDPDe_rho(rho, e);
 }
 
 NekDouble EquationOfState::GetEFromRhoP(const NekDouble &rho,
-                                        const NekDouble &p)
-{
-    return v_GetEFromRhoP(rho, p);
+                                        const NekDouble &p) {
+  return v_GetEFromRhoP(rho, p);
 }
 
-NekDouble EquationOfState::GetRhoFromPT(const NekDouble &p, const NekDouble &T)
-{
-    return v_GetRhoFromPT(p, T);
+NekDouble EquationOfState::GetRhoFromPT(const NekDouble &p,
+                                        const NekDouble &T) {
+  return v_GetRhoFromPT(p, T);
 }
 
 // General implementation for v_GetSoundSpeed: c^2 = xi + kappa * h
 //    where xi = dpdrho - e/rho * dp/de    and  kappa = dp/de / rho
 NekDouble EquationOfState::v_GetSoundSpeed(const NekDouble &rho,
-                                           const NekDouble &e)
-{
-    NekDouble p      = GetPressure(rho, e);
-    NekDouble dpde   = GetDPDe_rho(rho, e);
-    NekDouble dpdrho = GetDPDrho_e(rho, e);
+                                           const NekDouble &e) {
+  NekDouble p = GetPressure(rho, e);
+  NekDouble dpde = GetDPDe_rho(rho, e);
+  NekDouble dpdrho = GetDPDrho_e(rho, e);
 
-    NekDouble enthalpy = e + p / rho;
+  NekDouble enthalpy = e + p / rho;
 
-    NekDouble chi   = dpdrho - e / rho * dpde;
-    NekDouble kappa = dpde / rho;
+  NekDouble chi = dpdrho - e / rho * dpde;
+  NekDouble kappa = dpde / rho;
 
-    return sqrt(chi + kappa * enthalpy);
+  return sqrt(chi + kappa * enthalpy);
 }
 
-}
+} // namespace Nektar

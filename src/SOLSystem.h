@@ -37,146 +37,125 @@
 
 #include <boost/core/ignore_unused.hpp>
 
-#include <SolverUtils/UnsteadySystem.h>
-#include <SolverUtils/AdvectionSystem.h>
-#include <SolverUtils/RiemannSolvers/RiemannSolver.h>
+#include <LocalRegions/Expansion2D.h>
+#include <LocalRegions/Expansion3D.h>
+#include <MultiRegions/GlobalMatrixKey.h>
 #include <SolverUtils/AdvectionSystem.h>
 #include <SolverUtils/Diffusion/Diffusion.h>
-#include <SolverUtils/Forcing/Forcing.h>
-#include <MultiRegions/GlobalMatrixKey.h>
 #include <SolverUtils/Filters/FilterInterfaces.hpp>
-#include <LocalRegions/Expansion3D.h>
-#include <LocalRegions/Expansion2D.h>
+#include <SolverUtils/Forcing/Forcing.h>
+#include <SolverUtils/RiemannSolvers/RiemannSolver.h>
+#include <SolverUtils/UnsteadySystem.h>
 
 #include "VariableConverter.h"
 
-namespace Nektar
-{
+namespace Nektar {
 /**
  *
  */
-class SOLSystem: public SolverUtils::AdvectionSystem,
-                 public SolverUtils::FluidInterface
-{
+class SOLSystem : public SolverUtils::AdvectionSystem,
+                  public SolverUtils::FluidInterface {
 public:
-    friend class MemoryManager<SOLSystem>;
+  friend class MemoryManager<SOLSystem>;
 
-    /// Creates an instance of this class.
-    static SolverUtils::EquationSystemSharedPtr create(
-        const LibUtilities::SessionReaderSharedPtr& pSession,
-        const SpatialDomains::MeshGraphSharedPtr& pGraph)
-    {
-        SolverUtils::EquationSystemSharedPtr p = MemoryManager<SOLSystem>
-            ::AllocateSharedPtr(pSession, pGraph);
-        p->InitObject();
-        return p;
-    }
+  /// Creates an instance of this class.
+  static SolverUtils::EquationSystemSharedPtr
+  create(const LibUtilities::SessionReaderSharedPtr &pSession,
+         const SpatialDomains::MeshGraphSharedPtr &pGraph) {
+    SolverUtils::EquationSystemSharedPtr p =
+        MemoryManager<SOLSystem>::AllocateSharedPtr(pSession, pGraph);
+    p->InitObject();
+    return p;
+  }
 
-    /// Name of class.
-    static std::string className;
+  /// Name of class.
+  static std::string className;
 
-    virtual ~SOLSystem();
+  virtual ~SOLSystem();
 
-    /// Function to get estimate of min h/p factor per element
-    Array<OneD, NekDouble>  GetElmtMinHP(void);
+  /// Function to get estimate of min h/p factor per element
+  Array<OneD, NekDouble> GetElmtMinHP(void);
 
-    virtual void GetPressure(
-        const Array<OneD, const Array<OneD, NekDouble>> &physfield,
-        Array<OneD, NekDouble>                    &pressure);
+  virtual void
+  GetPressure(const Array<OneD, const Array<OneD, NekDouble>> &physfield,
+              Array<OneD, NekDouble> &pressure);
 
-    virtual void GetDensity(
-        const Array<OneD, const Array<OneD, NekDouble>> &physfield,
-        Array<OneD, NekDouble>                    &density);
+  virtual void
+  GetDensity(const Array<OneD, const Array<OneD, NekDouble>> &physfield,
+             Array<OneD, NekDouble> &density);
 
-    virtual bool HasConstantDensity()
-    {
-        return false;
-    }
+  virtual bool HasConstantDensity() { return false; }
 
-    virtual void GetVelocity(
-        const Array<OneD, const Array<OneD, NekDouble>> &physfield,
-        Array<OneD,       Array<OneD, NekDouble>> &velocity);
+  virtual void
+  GetVelocity(const Array<OneD, const Array<OneD, NekDouble>> &physfield,
+              Array<OneD, Array<OneD, NekDouble>> &velocity);
 
 protected:
-    SolverUtils::DiffusionSharedPtr     m_diffusion;
-    Array<OneD, Array<OneD, NekDouble>> m_vecLocs;
-    NekDouble                           m_gamma;
+  SolverUtils::DiffusionSharedPtr m_diffusion;
+  Array<OneD, Array<OneD, NekDouble>> m_vecLocs;
+  NekDouble m_gamma;
 
-    // Auxiliary object to convert variables
-    VariableConverterSharedPtr          m_varConv;
+  // Auxiliary object to convert variables
+  VariableConverterSharedPtr m_varConv;
 
-    NekDouble                           m_bndEvaluateTime;
+  NekDouble m_bndEvaluateTime;
 
-    // Forcing term
-    std::vector<SolverUtils::ForcingSharedPtr> m_forcing;
+  // Forcing term
+  std::vector<SolverUtils::ForcingSharedPtr> m_forcing;
 
-    SOLSystem(
-        const LibUtilities::SessionReaderSharedPtr& pSession,
-        const SpatialDomains::MeshGraphSharedPtr& pGraph);
+  SOLSystem(const LibUtilities::SessionReaderSharedPtr &pSession,
+            const SpatialDomains::MeshGraphSharedPtr &pGraph);
 
-    virtual void v_InitObject(bool DeclareField) override;
+  virtual void v_InitObject(bool DeclareField) override;
 
-    void InitAdvection();
+  void InitAdvection();
 
-    void DoOdeRhs(
-        const Array<OneD, const Array<OneD, NekDouble>> &inarray,
-        Array<OneD,       Array<OneD, NekDouble>> &outarray,
-        const NekDouble                                 time);
-    void DoOdeProjection(
-        const Array<OneD, const Array<OneD, NekDouble>> &inarray,
-        Array<OneD,       Array<OneD, NekDouble>> &outarray,
-        const NekDouble                                 time);
+  void DoOdeRhs(const Array<OneD, const Array<OneD, NekDouble>> &inarray,
+                Array<OneD, Array<OneD, NekDouble>> &outarray,
+                const NekDouble time);
+  void DoOdeProjection(const Array<OneD, const Array<OneD, NekDouble>> &inarray,
+                       Array<OneD, Array<OneD, NekDouble>> &outarray,
+                       const NekDouble time);
 
-    void DoAdvection(
-        const Array<OneD, const Array<OneD, NekDouble>> &inarray,
-              Array<OneD,       Array<OneD, NekDouble>> &outarray,
-        const NekDouble                                 time,
-        const Array<OneD, const Array<OneD, NekDouble>> &pFwd,
-        const Array<OneD, const Array<OneD, NekDouble>> &pBwd);
+  void DoAdvection(const Array<OneD, const Array<OneD, NekDouble>> &inarray,
+                   Array<OneD, Array<OneD, NekDouble>> &outarray,
+                   const NekDouble time,
+                   const Array<OneD, const Array<OneD, NekDouble>> &pFwd,
+                   const Array<OneD, const Array<OneD, NekDouble>> &pBwd);
 
-    void DoDiffusion(
-        const Array<OneD, const Array<OneD, NekDouble>> &inarray,
-              Array<OneD,       Array<OneD, NekDouble>> &outarray,
-        const Array<OneD, const Array<OneD, NekDouble>> &pFwd,
-        const Array<OneD, const Array<OneD, NekDouble>> &pBwd);
+  void DoDiffusion(const Array<OneD, const Array<OneD, NekDouble>> &inarray,
+                   Array<OneD, Array<OneD, NekDouble>> &outarray,
+                   const Array<OneD, const Array<OneD, NekDouble>> &pFwd,
+                   const Array<OneD, const Array<OneD, NekDouble>> &pBwd);
 
-    void GetFluxVector(
-        const Array<OneD, const Array<OneD, NekDouble>> &physfield,
-        TensorOfArray3D<NekDouble>                &flux);
+  void GetFluxVector(const Array<OneD, const Array<OneD, NekDouble>> &physfield,
+                     TensorOfArray3D<NekDouble> &flux);
 
-    void SetBoundaryConditions(
-        Array<OneD, Array<OneD, NekDouble>> &physarray,
-        NekDouble                           time);
+  void SetBoundaryConditions(Array<OneD, Array<OneD, NekDouble>> &physarray,
+                             NekDouble time);
 
-    void GetElmtTimeStep(
-        const Array<OneD, const Array<OneD, NekDouble>> &inarray,
-        Array<OneD, NekDouble>                    &tstep);
+  void GetElmtTimeStep(const Array<OneD, const Array<OneD, NekDouble>> &inarray,
+                       Array<OneD, NekDouble> &tstep);
 
-    virtual NekDouble v_GetTimeStep(
-        const Array<OneD, const Array<OneD, NekDouble> > &inarray) override;
+  virtual NekDouble v_GetTimeStep(
+      const Array<OneD, const Array<OneD, NekDouble>> &inarray) override;
 
-    NekDouble GetGamma()
-    {
-        return m_gamma;
-    }
+  NekDouble GetGamma() { return m_gamma; }
 
-    const Array<OneD, const Array<OneD, NekDouble> > &GetVecLocs()
-    {
-        return m_vecLocs;
-    }
+  const Array<OneD, const Array<OneD, NekDouble>> &GetVecLocs() {
+    return m_vecLocs;
+  }
 
-    const Array<OneD, const Array<OneD, NekDouble> > &GetNormals()
-    {
-        return m_traceNormals;
-    }
+  const Array<OneD, const Array<OneD, NekDouble>> &GetNormals() {
+    return m_traceNormals;
+  }
 
-    virtual Array<OneD, NekDouble> v_GetMaxStdVelocity(
-        const NekDouble SpeedSoundFactor) override;
+  virtual Array<OneD, NekDouble>
+  v_GetMaxStdVelocity(const NekDouble SpeedSoundFactor) override;
 
-    virtual void v_SteadyStateResidual(
-        int                     step,
-        Array<OneD, NekDouble>  &L2) override;
+  virtual void v_SteadyStateResidual(int step,
+                                     Array<OneD, NekDouble> &L2) override;
 };
 
-}
+} // namespace Nektar
 #endif

@@ -39,155 +39,125 @@
 #include "EquationOfState.h"
 #include <SolverUtils/UnsteadySystem.h>
 
-namespace Nektar
-{
+namespace Nektar {
 // Forward declarations
 class VariableConverter;
 typedef std::shared_ptr<VariableConverter> VariableConverterSharedPtr;
 /**
  *
  */
-class VariableConverter
-{
+class VariableConverter {
 public:
-    VariableConverter(const LibUtilities::SessionReaderSharedPtr &pSession,
-                      const int spaceDim);
+  VariableConverter(const LibUtilities::SessionReaderSharedPtr &pSession,
+                    const int spaceDim);
 
-    ~VariableConverter();
+  ~VariableConverter();
 
-    // Variable manipulations valid for all fluids
-    void GetDynamicEnergy(
-        const Array<OneD, const Array<OneD, NekDouble>> &physfield,
-        Array<OneD, NekDouble> &energy);
-    void GetInternalEnergy(
-        const Array<OneD, const Array<OneD, NekDouble>> &physfield,
-        Array<OneD, NekDouble> &energy);
-    template <class T, typename = typename std::enable_if
-    <
-            std::is_floating_point<T>::value ||
-            tinysimd::is_vector_floating_point<T>::value
-        >::type
-    >
-    inline T GetInternalEnergy(T* physfield)
-    {
-        // get dynamic energy
-        T oneOrho = 1.0 / physfield[0];
-        T dynEne{};
-        for (size_t d = 1; d < m_spacedim + 1; ++d)
-        {
-            T tmp = physfield[d]; //load 1x
-            dynEne += tmp * tmp;
-        }
-        dynEne = 0.5 * dynEne * oneOrho;
-
-        // Calculate rhoe = E - rho*V^2/2
-        T energy = physfield[m_spacedim + 1] - dynEne;
-        return energy * oneOrho;
+  // Variable manipulations valid for all fluids
+  void
+  GetDynamicEnergy(const Array<OneD, const Array<OneD, NekDouble>> &physfield,
+                   Array<OneD, NekDouble> &energy);
+  void
+  GetInternalEnergy(const Array<OneD, const Array<OneD, NekDouble>> &physfield,
+                    Array<OneD, NekDouble> &energy);
+  template <class T, typename = typename std::enable_if<
+                         std::is_floating_point<T>::value ||
+                         tinysimd::is_vector_floating_point<T>::value>::type>
+  inline T GetInternalEnergy(T *physfield) {
+    // get dynamic energy
+    T oneOrho = 1.0 / physfield[0];
+    T dynEne{};
+    for (size_t d = 1; d < m_spacedim + 1; ++d) {
+      T tmp = physfield[d]; // load 1x
+      dynEne += tmp * tmp;
     }
-    void GetEnthalpy(const Array<OneD, const Array<OneD, NekDouble>> &physfield,
-                     Array<OneD, NekDouble> &enthalpy);
-    void GetVelocityVector(const Array<OneD, Array<OneD, NekDouble>> &physfield,
-              Array<OneD, Array<OneD, NekDouble>> &velocity);
-    void GetMach(Array<OneD, Array<OneD, NekDouble>> &physfield,
-                 Array<OneD, NekDouble> &soundspeed,
-                 Array<OneD, NekDouble> &mach);
-    void GetDynamicViscosity(const Array<OneD, const NekDouble> &temperature,
-                             Array<OneD, NekDouble> &mu);
+    dynEne = 0.5 * dynEne * oneOrho;
 
-    template <class T, typename = typename std::enable_if
-        <
-            std::is_floating_point<T>::value ||
-            tinysimd::is_vector_floating_point<T>::value
-        >::type
-    >
-    inline T GetDynamicViscosity(T &temperature)
-    {
-        constexpr NekDouble C = .38175;
-        constexpr NekDouble onePlusC = 1.0 + C;
+    // Calculate rhoe = E - rho*V^2/2
+    T energy = physfield[m_spacedim + 1] - dynEne;
+    return energy * oneOrho;
+  }
+  void GetEnthalpy(const Array<OneD, const Array<OneD, NekDouble>> &physfield,
+                   Array<OneD, NekDouble> &enthalpy);
+  void GetVelocityVector(const Array<OneD, Array<OneD, NekDouble>> &physfield,
+                         Array<OneD, Array<OneD, NekDouble>> &velocity);
+  void GetMach(Array<OneD, Array<OneD, NekDouble>> &physfield,
+               Array<OneD, NekDouble> &soundspeed,
+               Array<OneD, NekDouble> &mach);
+  void GetDynamicViscosity(const Array<OneD, const NekDouble> &temperature,
+                           Array<OneD, NekDouble> &mu);
 
-        NekDouble mu_star = m_mu;
+  template <class T, typename = typename std::enable_if<
+                         std::is_floating_point<T>::value ||
+                         tinysimd::is_vector_floating_point<T>::value>::type>
+  inline T GetDynamicViscosity(T &temperature) {
+    constexpr NekDouble C = .38175;
+    constexpr NekDouble onePlusC = 1.0 + C;
 
-        T ratio = temperature * m_oneOverT_star;
-        return mu_star * ratio * sqrt(ratio) * onePlusC / (ratio + C);
-    }
+    NekDouble mu_star = m_mu;
 
-    void GetAbsoluteVelocity(
-        const Array<OneD, const Array<OneD, NekDouble>> &physfield,
-        Array<OneD, NekDouble> &Vtot);
-    void GetSensor(const MultiRegions::ExpListSharedPtr &field,
-                   const Array<OneD, const Array<OneD, NekDouble>> &physarray,
-                   Array<OneD, NekDouble> &Sensor,
-                   Array<OneD, NekDouble> &SensorKappa, int offset = 1);
+    T ratio = temperature * m_oneOverT_star;
+    return mu_star * ratio * sqrt(ratio) * onePlusC / (ratio + C);
+  }
 
-    // Transformations depending on the equation of state
-    void GetTemperature(
-        const Array<OneD, const Array<OneD, NekDouble>> &physfield,
-        Array<OneD, NekDouble> &temperature);
-    template <class T, typename = typename std::enable_if
-        <
-            std::is_floating_point<T>::value ||
-            tinysimd::is_vector_floating_point<T>::value
-        >::type
-    >
-    inline T GetTemperature(T* physfield)
-    {
-        T energy = GetInternalEnergy(physfield);
-        return m_eos->GetTemperature(physfield[0], energy);
-    }
-    //
-    void GetPressure(const Array<OneD, const Array<OneD, NekDouble>> &physfield,
-                     Array<OneD, NekDouble> &pressure);
-    template <class T, typename = typename std::enable_if
-        <
-            std::is_floating_point<T>::value ||
-            tinysimd::is_vector_floating_point<T>::value
-        >::type
-    >
-    inline T GetPressure(T* physfield)
-    {
-        T energy = GetInternalEnergy(physfield);
-        return m_eos->GetPressure(physfield[0], energy);
-    }
+  void GetAbsoluteVelocity(
+      const Array<OneD, const Array<OneD, NekDouble>> &physfield,
+      Array<OneD, NekDouble> &Vtot);
+  void GetSensor(const MultiRegions::ExpListSharedPtr &field,
+                 const Array<OneD, const Array<OneD, NekDouble>> &physarray,
+                 Array<OneD, NekDouble> &Sensor,
+                 Array<OneD, NekDouble> &SensorKappa, int offset = 1);
 
-    void GetSoundSpeed(
-        const Array<OneD, const Array<OneD, NekDouble>> &physfield,
-        Array<OneD, NekDouble> &soundspeed);
-    void GetEntropy(const Array<OneD, const Array<OneD, NekDouble>> &physfield,
-                    Array<OneD, NekDouble> &entropy);
-    void GetEFromRhoP(const Array<OneD, NekDouble> &rho,
-                      const Array<OneD, NekDouble> &pressure,
-                      Array<OneD, NekDouble> &energy);
-    void GetRhoFromPT(const Array<OneD, NekDouble> &pressure,
-                      const Array<OneD, NekDouble> &temperature,
-                      Array<OneD, NekDouble> &rho);
-    void GetDmuDT(
-        const Array<OneD, const NekDouble>  &temperature, 
-        const Array<OneD, const NekDouble>  &mu, 
-              Array<OneD, NekDouble>        &DmuDT);
+  // Transformations depending on the equation of state
+  void
+  GetTemperature(const Array<OneD, const Array<OneD, NekDouble>> &physfield,
+                 Array<OneD, NekDouble> &temperature);
+  template <class T, typename = typename std::enable_if<
+                         std::is_floating_point<T>::value ||
+                         tinysimd::is_vector_floating_point<T>::value>::type>
+  inline T GetTemperature(T *physfield) {
+    T energy = GetInternalEnergy(physfield);
+    return m_eos->GetTemperature(physfield[0], energy);
+  }
+  //
+  void GetPressure(const Array<OneD, const Array<OneD, NekDouble>> &physfield,
+                   Array<OneD, NekDouble> &pressure);
+  template <class T, typename = typename std::enable_if<
+                         std::is_floating_point<T>::value ||
+                         tinysimd::is_vector_floating_point<T>::value>::type>
+  inline T GetPressure(T *physfield) {
+    T energy = GetInternalEnergy(physfield);
+    return m_eos->GetPressure(physfield[0], energy);
+  }
 
-    const EquationOfStateSharedPtr Geteos()
-    {
-        return m_eos;
-    }
+  void GetSoundSpeed(const Array<OneD, const Array<OneD, NekDouble>> &physfield,
+                     Array<OneD, NekDouble> &soundspeed);
+  void GetEntropy(const Array<OneD, const Array<OneD, NekDouble>> &physfield,
+                  Array<OneD, NekDouble> &entropy);
+  void GetEFromRhoP(const Array<OneD, NekDouble> &rho,
+                    const Array<OneD, NekDouble> &pressure,
+                    Array<OneD, NekDouble> &energy);
+  void GetRhoFromPT(const Array<OneD, NekDouble> &pressure,
+                    const Array<OneD, NekDouble> &temperature,
+                    Array<OneD, NekDouble> &rho);
+  void GetDmuDT(const Array<OneD, const NekDouble> &temperature,
+                const Array<OneD, const NekDouble> &mu,
+                Array<OneD, NekDouble> &DmuDT);
+
+  const EquationOfStateSharedPtr Geteos() { return m_eos; }
 
 protected:
-    LibUtilities::SessionReaderSharedPtr m_session;
-    EquationOfStateSharedPtr m_eos;
-    int m_spacedim;
-    NekDouble m_pInf;
-    NekDouble m_rhoInf;
-    NekDouble m_gasConstant;
-    NekDouble m_mu;
-    NekDouble m_Skappa;
-    NekDouble m_Kappa;
-    NekDouble m_oneOverT_star;
+  LibUtilities::SessionReaderSharedPtr m_session;
+  EquationOfStateSharedPtr m_eos;
+  int m_spacedim;
+  NekDouble m_pInf;
+  NekDouble m_rhoInf;
+  NekDouble m_gasConstant;
+  NekDouble m_mu;
+  NekDouble m_Skappa;
+  NekDouble m_Kappa;
+  NekDouble m_oneOverT_star;
 };
 
-
-
-
-
-
-
-}
+} // namespace Nektar
 #endif

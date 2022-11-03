@@ -35,67 +35,58 @@
 #ifndef NEKTAR_SOLVERUTILS_FORCINGAXISYM
 #define NEKTAR_SOLVERUTILS_FORCINGAXISYM
 
-#include <SolverUtils/Forcing/Forcing.h>
 #include "VariableConverter.h"
+#include <SolverUtils/Forcing/Forcing.h>
 
-namespace Nektar
-{
+namespace Nektar {
 
-class SourceTerms : public SolverUtils::Forcing
-{
+class SourceTerms : public SolverUtils::Forcing {
 public:
+  friend class MemoryManager<SourceTerms>;
 
-    friend class MemoryManager<SourceTerms>;
+  /// Creates an instance of this class
+  static SolverUtils::ForcingSharedPtr
+  create(const LibUtilities::SessionReaderSharedPtr &pSession,
+         const std::weak_ptr<SolverUtils::EquationSystem> &pEquation,
+         const Array<OneD, MultiRegions::ExpListSharedPtr> &pFields,
+         const unsigned int &pNumForcingFields, const TiXmlElement *pForce) {
+    SolverUtils::ForcingSharedPtr p =
+        MemoryManager<SourceTerms>::AllocateSharedPtr(pSession, pEquation);
+    p->InitObject(pFields, pNumForcingFields, pForce);
+    return p;
+  }
 
-    /// Creates an instance of this class
-    static SolverUtils::ForcingSharedPtr create(
-        const LibUtilities::SessionReaderSharedPtr         &pSession,
-        const std::weak_ptr<SolverUtils::EquationSystem> &pEquation,
-        const Array<OneD, MultiRegions::ExpListSharedPtr>& pFields,
-        const unsigned int& pNumForcingFields,
-        const TiXmlElement* pForce)
-    {
-        SolverUtils::ForcingSharedPtr p =
-            MemoryManager<SourceTerms>::
-            AllocateSharedPtr(pSession, pEquation);
-        p->InitObject(pFields, pNumForcingFields, pForce);
-        return p;
-    }
-
-    ///Name of the class
-    static std::string className;
+  /// Name of the class
+  static std::string className;
 
 protected:
-    virtual void v_InitObject(
-        const Array<OneD, MultiRegions::ExpListSharedPtr>& pFields,
-        const unsigned int&                         pNumForcingFields,
-        const TiXmlElement*                         pForce);
+  virtual void
+  v_InitObject(const Array<OneD, MultiRegions::ExpListSharedPtr> &pFields,
+               const unsigned int &pNumForcingFields,
+               const TiXmlElement *pForce);
 
-    virtual void v_Apply(
-        const Array<OneD, MultiRegions::ExpListSharedPtr>& fields,
-        const Array<OneD, Array<OneD, NekDouble> >& inarray,
-        Array<OneD, Array<OneD, NekDouble> >& outarray,
-        const NekDouble&                            time);
+  virtual void
+  v_Apply(const Array<OneD, MultiRegions::ExpListSharedPtr> &fields,
+          const Array<OneD, Array<OneD, NekDouble>> &inarray,
+          Array<OneD, Array<OneD, NekDouble>> &outarray, const NekDouble &time);
 
 private:
+  SourceTerms(const LibUtilities::SessionReaderSharedPtr &pSession,
+              const std::weak_ptr<SolverUtils::EquationSystem> &pEquation);
 
-    SourceTerms(
-        const LibUtilities::SessionReaderSharedPtr         &pSession,
-        const std::weak_ptr<SolverUtils::EquationSystem> &pEquation);
+  VariableConverterSharedPtr m_varConv;
+  Array<OneD, NekDouble> m_x;
+  Array<OneD, NekDouble> m_y;
 
-    VariableConverterSharedPtr           m_varConv;
-    Array<OneD, NekDouble> m_x;
-    Array<OneD, NekDouble> m_y;
-
-    // Source parameters
-    NekDouble m_xmax;
-    NekDouble m_mu;
-    NekDouble m_sigma;
-    NekDouble m_rho_prefac;
-    NekDouble m_u_prefac;
-    NekDouble m_E_prefac;
+  // Source parameters
+  NekDouble m_xmax;
+  NekDouble m_mu;
+  NekDouble m_sigma;
+  NekDouble m_rho_prefac;
+  NekDouble m_u_prefac;
+  NekDouble m_E_prefac;
 };
 
-}
+} // namespace Nektar
 
 #endif
