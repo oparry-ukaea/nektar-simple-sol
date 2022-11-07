@@ -17,7 +17,7 @@ def _animate_1D_profiles(run_dir, chk_start=0,chk_end=100, output_fname="profs_e
     rho_ax=axarr[0]
     rho_ax.set_ylim(0.9,2.5)
     rho_ax.set_xlabel("x")
-    rho_ax.set_ylabel("$\rho$")
+    rho_ax.set_ylabel(r'$\rho$')
     rhoinit = params["RHOINF"]
     rho_ax.axhline(y=rhoinit, **(get_plot_style("line",color='grey',linestyle='--')))
 
