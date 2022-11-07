@@ -107,10 +107,10 @@ void SourceTerms::v_Apply(
     outarray[u_idx][i] +=
         (m_x[i] / m_mu - 1.) * CalcGaussian(m_u_prefac, m_mu, m_sigma, m_x[i]);
   }
-  // S^E source term
+  // S^E source term - divided by 2 since the LHS of the energy equation has
+  // been doubled (see README for details)
   for (int i = 0; i < outarray[2].size(); ++i) {
-    outarray[E_idx][i] += CalcGaussian(m_E_prefac, m_mu, m_sigma, m_x[i]) /
-                          2.0; // Where did this factor of 1/2 come from?!?
+    outarray[E_idx][i] += CalcGaussian(m_E_prefac, m_mu, m_sigma, m_x[i]) / 2.0;
   }
 }
 

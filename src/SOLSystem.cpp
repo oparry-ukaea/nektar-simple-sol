@@ -265,7 +265,7 @@ void SOLSystem::GetFluxVector(
     for (size_t d = 0; d < m_spacedim; ++d) {
       // Flux vector for the rho equation
       flux[0][d][p] = fieldTmp[d + 1]; // store
-      // compute velocity
+      // compute velocities from momentum densities
       velocity[d] = fieldTmp[d + 1] * oneOrho;
     }
 
