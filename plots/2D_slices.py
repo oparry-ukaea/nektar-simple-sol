@@ -20,7 +20,7 @@ def animate_rho_u_T_slices(run_dir,chk_start=0,chk_end=100,chk_stride=1,output_f
 
     # rho panel
     rho_ax=axarr[0]
-    rho_ax.set_ylim(0.5,2.5)
+    rho_ax.set_ylim(0.9,2.3)
     rho_ax.set_xlabel("x")
     rho_ax.set_ylabel('n')
     rhoinit = params["RHOINF"]
@@ -80,7 +80,7 @@ def main():
     chk_end    = 100
     save       = True
 
-    animate_rho_u_T_slices(get_run_root(run_subdir),chk_start=chk_start,chk_end=chk_end,output_fpath=get_plot_path('rho_u_T_slice_anim.mp4'),save=save)
+    animate_rho_u_T_slices(get_run_root(run_subdir),chk_start=chk_start,chk_end=chk_end,output_fpath=get_plot_path('rho_u_T_2D_slice_anim.mp4'),save=save)
 #--------------------------------------------------------------------------------------------------
 
 if __name__=='__main__':

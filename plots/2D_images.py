@@ -7,7 +7,7 @@ import os.path
 import time
 
 #--------------------------------------------------------------------------------------------------
-def animate_vtus(run_dir,chk_start,chk_end,chk_stride=1,output_fpath=get_plot_path('rho_u_T_anim.mp4'),**kwargs):
+def animate_vtus(run_dir,chk_start,chk_end,chk_stride=1,output_fpath=get_plot_path('rho_u_T_2D_anim.mp4'),**kwargs):
     meshes = read_vtus(run_dir,chk_start,chk_end,chk_stride,**kwargs)
 
     pl = gen_plotter(off_screen=True)
@@ -83,7 +83,7 @@ def populate_plotter(pl,mesh,params):
     pl.subplot(0, 0)
     sb_args = dict(sb_args_common)
     sb_args.update(title="rho")
-    pl.add_mesh(mesh,scalars='rho', clim=[0.5,2.5], show_edges=False, scalar_bar_args=sb_args)
+    pl.add_mesh(mesh,scalars='rho', clim=[0.9,2.3], show_edges=False, scalar_bar_args=sb_args)
     pl.view_xy()
 
     pl.subplot(1, 0)
@@ -131,7 +131,7 @@ def read_vtus(run_dir,chk_start,chk_end,chk_stride,**kwargs):
 #--------------------------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------------------------
-def plot_single_vtu(run_dir, chk_num, output_fbase='rho_u_T', save=False, **kwargs):
+def plot_single_vtu(run_dir, chk_num, output_fbase='rho_u_T_2D', save=False, **kwargs):
     output_fpath = get_plot_path(f"{output_fbase}_{chk_num}.png")
 
     mesh = read_vtu(run_dir, chk_num, **kwargs)

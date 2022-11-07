@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 from utils import get_plot_path, get_plot_style, get_run_root, read_all_nektar_srcs
 
 #--------------------------------------------------------------------------------------------------
-def _animate_1D_profiles(run_dir, chk_start=0,chk_end=100, output_fname="profs_evo.mp4", save=False, **animate_kwargs):
+def _animate_1D_profiles(run_dir, chk_start=0,chk_end=100, output_fname="rho_u_T_1D_anim.mp4", save=False, **animate_kwargs):
     data_srcs =  read_all_nektar_srcs(run_dir,extra_fields=[("u","rhou/rho"),("T","(E-(rhou*rhou/rho)/2)/rho*(gamma-1.0)/GasConstant")],chk_start=chk_start,chk_end=chk_end)
 
     fig, axarr = plt.subplots(1,3,figsize=(15,5))
@@ -15,7 +15,7 @@ def _animate_1D_profiles(run_dir, chk_start=0,chk_end=100, output_fname="profs_e
 
     # rho panel
     rho_ax=axarr[0]
-    rho_ax.set_ylim(0.9,2.5)
+    rho_ax.set_ylim(0.9,2.3)
     rho_ax.set_xlabel("x")
     rho_ax.set_ylabel(r'$\rho$')
     rhoinit = params["RHOINF"]
@@ -31,15 +31,15 @@ def _animate_1D_profiles(run_dir, chk_start=0,chk_end=100, output_fname="profs_e
 
     # T panel
     T_ax=axarr[2]
-    T_ax.set_ylim(0.5,1.5)
+    T_ax.set_ylim(0.7,1.4)
     T_ax.set_xlabel("x")
     T_ax.set_ylabel('T')
     Einit = params["PINF"]/(params["GAMMA"]-1)
     Tinit = (Einit-(rhoinit*uinit**2)/2)/rhoinit*(params["GAMMA"]-1.0)/params["GASCONSTANT"]
     T_ax.axhline(y = Tinit, **(get_plot_style("line",color='grey',linestyle='--')))
 
-    rho_line, = rho_ax.plot(x, x-999, **(get_plot_style("line")))
-    u_line, = u_ax.plot(x, x-999, **(get_plot_style("line",color='blue')))
+    rho_line, = rho_ax.plot(x, x-999, **(get_plot_style("line",color='blue')))
+    u_line, = u_ax.plot(x, x-999, **(get_plot_style("line",color='red')))
     T_line, = T_ax.plot(x, x-999, **(get_plot_style("line",color='green')))
     def _animate(ii):
         t = params["TIMESTEP"]*params["IO_CHECKSTEPS"]*(ii+1)
