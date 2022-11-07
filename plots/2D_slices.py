@@ -1,5 +1,5 @@
 
-from utils import get_plot_path, get_run_root, read_all_nektar_srcs
+from utils import get_plot_path, get_plot_style, get_run_root, read_all_nektar_srcs, read_an_src
 
 from matplotlib import pyplot as plt
 import matplotlib.animation as mpl_animation
@@ -44,6 +44,15 @@ def animate_rho_u_T_slices(run_dir,chk_start=0,chk_end=100,chk_stride=1,output_f
     Tinit = (Einit-(rhoinit*uinit**2)/2)/rhoinit*(params["GAMMA"]-1.0)/params["GASCONSTANT"]
     T_ax.axhline(y = Tinit, color='grey',linestyle='--',label='ICs')
 
+   # Plot analytic data
+    an_fname    = 'analytic_sigma{:d}.csv'.format(int(params.get("SIGMA",2.0)))
+    an_data_src = read_an_src(an_fname)
+    an_x        = an_data_src.get('x')
+    rho_ax.plot(an_x, an_data_src.get('rho'), **(get_plot_style("line",linestyle='--',color='blue')))
+    u_ax.plot(an_x, an_data_src.get('u'), **(get_plot_style("line",linestyle='--',color='red')))
+    T_ax.plot(an_x, an_data_src.get('T'), **(get_plot_style("line",linestyle='--',color='green')))
+
+    # Plot initial (dummy) Nektar data
     rho_line, = rho_ax.plot(x, x-999, color='blue',linestyle='-')
     u_line, = u_ax.plot(x, x-999, color='red',linestyle='-')
     T_line, = T_ax.plot(x, x-999, color='green',linestyle='-')

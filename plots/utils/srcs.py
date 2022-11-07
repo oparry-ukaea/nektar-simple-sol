@@ -1,5 +1,13 @@
 from NekPlot.data import get_source
+from .locations import get_data_path
 from .plotting import get_plot_style
+
+#--------------------------------------------------------------------------------------------------
+def read_an_src(fname,plot_style="line"):    
+    src = get_source("dsv", get_data_path(fname))
+    src.set_plot_kws(get_plot_style(plot_style))
+    return src
+#--------------------------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------------------------
 def read_nektar_src(run_dir,chk_num,plot_style="points"):
