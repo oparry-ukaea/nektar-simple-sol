@@ -3,8 +3,13 @@ import os.path
 # Store some useful locations in a dict
 LOCATIONS = {}
 LOCATIONS["plots_dir"] = os.path.abspath(os.path.dirname(__file__)+"/..")
+LOCATIONS["data_dir"]  = os.path.normpath(os.path.join(LOCATIONS["plots_dir"],"data"))
 LOCATIONS["repo_root"] = os.path.normpath(os.path.join(LOCATIONS["plots_dir"],".."))
 LOCATIONS["runs_dir"]  = os.path.join(LOCATIONS["repo_root"],"runs")
+
+
+def get_data_path(fname):
+    return os.path.join(LOCATIONS["data_dir"],fname)
 
 def get_run_root(subdir):
     return os.path.join(LOCATIONS["runs_dir"],subdir)
