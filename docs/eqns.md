@@ -4,6 +4,7 @@ In the below, units are chosen such that the specific ideal gas constant, R, is 
 
 $e$ is the specific internal energy and $g=\frac{2\gamma}{\gamma-1}$.
 
+<!-- 
 ---
 ### Momentum Equation
 $$
@@ -11,9 +12,10 @@ $$
     \frac{\partial }{\partial t} (n\boldsymbol{u}) + \nabla\cdot(n\boldsymbol{u}^2) + \nabla (nT) &= S^u, \\
 \end{aligned}
 $$
-
+-->
 ---
 ### Energy Equation
+
 $$
 \begin{aligned}
     \frac{\partial }{\partial t} \left( (g-2)nT + n\vert\boldsymbol{u}\vert^2 \right) + \nabla\cdot(gn\boldsymbol{u}T + n\boldsymbol{u}^3) &= S^E\\
@@ -25,10 +27,12 @@ $$
    \frac{\partial E}{\partial t} + \nabla\cdot\boldsymbol{u}(P+E) &= \frac{S^E}{2}\\
 \end{aligned}
 $$
+
 (where $e$ is the specific internal energy.)
 
 ---
-Nektar solves:
+### Nektar solves:
+
 $$
 \begin{aligned}
     \frac{\partial \rho}{\partial t} + \frac{\partial {\rho}u}{\partial x} + \frac{\partial {\rho}v}{\partial y} &= S^n, \\
@@ -37,6 +41,7 @@ $$
     \frac{\partial E}{\partial t} + \frac{\partial [u(E+P)]}{\partial x} + \frac{\partial [v(E+P)]}{\partial y}&= S^E .
 \end{aligned}
 $$
+
 More details on Nektar's approach to solving the compressible Euler equations can be found in the [user guide](https://doc.nektar.info/userguide/latest/user-guidese38.html#x56-2540009.1.1).
 
 ---

@@ -25,7 +25,9 @@ $$
         + S^E.
 \end{aligned}
 $$
+
 $U_r$ controls the relative weight of the time-dependent terms, $\kappa_d$ is the heat diffusion/conductivity coefficient and $g$ is related to the ratio of specific heats, $\gamma$, by $g=\frac{2\gamma}{\gamma-1}$. Generalising to multiple spatial dimensions, then choosing $U_r=1$, ignoring conduction ($\kappa_d=0$) and moving all terms except sources to the LHS, we have:
+
 $$
 \begin{aligned}
     \frac{\partial n}{\partial t} + \nabla\cdot(n\boldsymbol{u}) &= S^n, \\
@@ -33,7 +35,8 @@ $$
     \frac{\partial }{\partial t} \left( (g-2)nT + n\vert\boldsymbol{u}\vert^2 \right) + \nabla\cdot(gn\boldsymbol{u}T + n\boldsymbol{u}^3) &= S^E.
 \end{aligned}
 $$
-Using the ideal gas law, [it can be shown](docs/eqns) that this system is exactly equivalent (modulo a factor of 2 in the energy equation) to the conservation form of the compressible Euler equations solved by Nektar++.
+
+Using the ideal gas law, [it can be shown](docs/eqns.md) that this system is exactly equivalent (modulo a factor of 2 in the energy equation) to the conservation form of the compressible Euler equations solved by Nektar++.
 
 ---
 ### Building
@@ -74,4 +77,4 @@ By default, .png or .mp4 files will we be produced in the `plots` directory.
 
 [1] W. Arter. Study of source terms in the SOLF1D edge code. Tech. rep. CCFE-DETACHMENT-RP2-Draft. CCFE, 2015.
 
-[2] W. Saunders and E. Threlfall. Finite Element Models: Performance. Tech. rep. CD/EXCALIBUR-FMS/0047-M2.2.2. https://github.com/ExCALIBUR-NEPTUNE/Documents/blob/main/reports/ukaea_reports/CD-EXCALIBUR-FMS0047-M2.2.2.pdf. UKAEA, 2021.
+<!-- [2] W. Saunders and E. Threlfall. Finite Element Models: Performance. Tech. rep. CD/EXCALIBUR-FMS/0047-M2.2.2. https://github.com/ExCALIBUR-NEPTUNE/Documents/blob/main/reports/ukaea_reports/CD-EXCALIBUR-FMS0047-M2.2.2.pdf. UKAEA, 2021. -->
