@@ -52,7 +52,12 @@ Run the bash script next to this readme called `run.sh`, specifying a run templa
 ```
 ./run.sh mode=<debug|release> template=<template_name>
 ```
-Where template_name defaults to '2DSOL' and mode to 'release.
+Where template_name defaults to '2DSOL' and mode to 'release. The solver is executed using the command specified in `runs/templates/<template_name>/cmd_line.txt`; by default, 8 MPI tasks are used. The table below summarises the options used in the 1DSOL and 2DSOL templates:
+
+| Template | Mesh        | Projection | Fields                                  | Time integration            | ${\Delta}t$ | $t_{\rm end}$ | Source widths |
+| -------- | ----------- | ---------- | --------------------------------------- | --------------------------- | ----------- | ------------- | ------------- |
+| 1DSOL    | 56 segments | DG         | $\rho$, $\rho{\rm u}$, E                | Explicit, $4^{th}$ order RK | 5e-4        | 250           | 2             |
+| 2DSOLD   | 56x3 quads  | DG         | $\rho$, $\rho{\rm u}$, $\rho{\rm v}$, E | Explicit, $4^{th}$ order RK | 2e-4        | 250           | 2             |
 
 ---
 ### Plots and animations
