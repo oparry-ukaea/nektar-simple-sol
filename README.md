@@ -36,7 +36,40 @@ $$
 Using the ideal gas law, [it can be shown](docs/eqns) that this system is exactly equivalent (modulo a factor of 2 in the energy equation) to the conservation form of the compressible Euler equations solved by Nektar++.
 
 ---
+### Building
+Run the bash script next to this readme called `make.sh`, supplying the path to a Nektar build directory.
+```
+./make.sh mode=<debug|release> nekbuild=<path_to_nektar_build_dir>
+```
+Where mode defaults to 'release'.
 
+---
+### Running
+Run the bash script next to this readme called `run.sh`, specifying a run template (see contents of `runs/templates`).
+```
+./run.sh mode=<debug|release> template=<template_name>
+```
+Where template_name defaults to '2DSOL' and mode to 'release.
+
+---
+### Plots and animations
+Plots and animations for runs based on the '1DSOL' and '2DSOL' templates can be generated using the Python script in `plots`. These require Nektar's 'NekPy' package and a wrapper package called [NekPlot](https://github.com/oparry-ukaea/NekPlot). To generate an appropriate environment automatically, run:
+```
+./plots/make_env.sh [path_to_nektar_build_dir]
+```
+Where the Nektar build referenced in the argument has been configured with BUILD_PYTHON=True.
+This may take several minutes to download the required dependencies.
+Activate the environment with
+```
+. env/bin/activate 
+```
+then run scripts with (e.g)
+```
+python plots/2D_slices.py
+```
+By default, .png or .mp4 files will we be produced in the `plots` directory.
+
+---
 ### References
 
 [1] W. Arter. Study of source terms in the SOLF1D edge code. Tech. rep. CCFE-DETACHMENT-RP2-Draft. CCFE, 2015.
