@@ -26,7 +26,7 @@ $$
 \end{aligned}
 $$
 
-$U_r$ controls the relative weight of the time-dependent terms, $\kappa_d$ is the heat diffusion/conductivity coefficient and $g$ is related to the ratio of specific heats, $\gamma$, by $g=\frac{2\gamma}{\gamma-1}$. Generalising to multiple spatial dimensions, then choosing $U_r=1$, ignoring conduction ($\kappa_d=0$) and moving all terms except sources to the LHS, we have:
+$U_r$ controls the relative weight of the time-dependent terms, $\kappa_d$ is the heat diffusion/conductivity coefficient and $g$ is related to the ratio of specific heats, $\gamma$, by $g=\frac{2\gamma}{\gamma-1}$. Generalising to multiple spatial dimensions, then choosing $U_r=1$, ignoring conduction ( $\kappa_d=0$) and moving all terms except sources to the LHS, we have:
 
 $$
 \begin{aligned}
