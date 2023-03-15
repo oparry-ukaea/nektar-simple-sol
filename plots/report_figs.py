@@ -40,7 +40,14 @@ def process_nektar_src(nek_src):
 #--------------------------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------------------------
-def plot_prof(ax,nek_src,an_src, fldname, sty_kws, mode='prof'):
+def plot_prof(ax,nek_src, fldname, **plot_kws):
+    ax.plot(nek_src.get('s'), nek_src.get(fldname), **plot_kws)
+    #ax.plot(nek_src.get('s'),nek_src.get(fldname+'_ICs'),linestyle=':',color='grey',label='ICs')
+    return ax
+#--------------------------------------------------------------------------------------------------
+
+#--------------------------------------------------------------------------------------------------
+def plot_prof_comp(ax,nek_src,an_src, fldname, sty_kws, mode='prof'):
     an_sty_kws = sty_kws["an"][fldname]
     nek_sty_kws = sty_kws["nek"][fldname]
 
@@ -78,13 +85,13 @@ def comp_analytic_steady_state(run_dir,output_fpath = get_plot_path("simple-SOL-
     fig = plt.figure(figsize=(16,8))
     gs = gridspec.GridSpec(2, 3, height_ratios=[9, 2],wspace=0.3)
     
-    rho_ax = plot_prof(fig.add_subplot(gs[0,0]),nek_src,an_src,"rho",sty_kws)
-    u_ax   = plot_prof(fig.add_subplot(gs[0,1]),nek_src,an_src,"u",sty_kws)
-    T_ax   = plot_prof(fig.add_subplot(gs[0,2]),nek_src,an_src,"T",sty_kws)
+    rho_ax = plot_prof_comp(fig.add_subplot(gs[0,0]),nek_src,an_src,"rho",sty_kws)
+    u_ax   = plot_prof_comp(fig.add_subplot(gs[0,1]),nek_src,an_src,"u",sty_kws)
+    T_ax   = plot_prof_comp(fig.add_subplot(gs[0,2]),nek_src,an_src,"T",sty_kws)
     
-    rho_res_ax = plot_prof(fig.add_subplot(gs[1,0]),nek_src,an_src,"rho",sty_kws,mode='res') 
-    u_res_ax   = plot_prof(fig.add_subplot(gs[1,1]),nek_src,an_src,"u",sty_kws,mode='res') 
-    T_res_ax   = plot_prof(fig.add_subplot(gs[1,2]),nek_src,an_src,"T",sty_kws,mode='res')
+    rho_res_ax = plot_prof_comp(fig.add_subplot(gs[1,0]),nek_src,an_src,"rho",sty_kws,mode='res') 
+    u_res_ax   = plot_prof_comp(fig.add_subplot(gs[1,1]),nek_src,an_src,"u",sty_kws,mode='res') 
+    T_res_ax   = plot_prof_comp(fig.add_subplot(gs[1,2]),nek_src,an_src,"T",sty_kws,mode='res')
 
     # Tweak properties of some plot
     rho_ax.set_ylabel("n (dimensionless)")
@@ -104,16 +111,57 @@ def comp_analytic_steady_state(run_dir,output_fpath = get_plot_path("simple-SOL-
 #--------------------------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------------------------
-def report_figs(run_dir,chk_num=None,save=True):
-    comp_analytic_steady_state(run_dir,save=save)
+def get_tlabel(src):
+    params =  src.get_session().GetParameters()
+    return "t = {:.2f}".format(params["TIMESTEP"]*params["IO_CHECKSTEPS"]*src.chk_num)
+#--------------------------------------------------------------------------------------------------
+
+#--------------------------------------------------------------------------------------------------
+def field_evo(run_dir,chk_start,chk_end,chk_stride,output_fpath=get_plot_path("simple-SOL-rot45_profs_evo.png"),save=True):
+    nek_srcs = []
+    nek_src_labels = []
+    for chk_num in range(chk_start,chk_end+1,chk_stride):
+        nek_src = read_nektar_src(run_dir,chk_num,file_base='2Drot45_config')
+        # Workaround for the fact add_field doesn't work with interpolation
+        nek_src_labels.append(get_tlabel(nek_src))
+        nek_src = process_nektar_src(nek_src)
+        nek_srcs.append(nek_src)
+
+    # Gen fig, axes
+    fig = plt.figure(figsize=(16,5))
+    gs = gridspec.GridSpec(1, 3,wspace=0.3)
+    rho_ax = fig.add_subplot(gs[0])
+
+    colors=['red','blue','green','magenta','cyan']
+    for nek_src,color,label in zip(nek_srcs,colors,nek_src_labels):
+        plot_style = get_plot_style("line", linestyle='--',color=color)
+        plot_prof(rho_ax, nek_src,"rho", label=label, **plot_style)
+        #u_ax   = plot_prof(fig.add_subplot(gs[1]),nek_srcs[0],"u", **nek_srcs[0].get_plot_kws())
+        #T_ax   = plot_prof(fig.add_subplot(gs[2]),nek_srcs[0],"T", **nek_srcs[0].get_plot_kws())
+
+    rho_ax.legend()
+
+    if save:
+        fig.savefig(output_fpath)
+        print(f"Evolution of profiles: {output_fpath}")
+    else:
+        plt.show()
+#--------------------------------------------------------------------------------------------------
+
+#--------------------------------------------------------------------------------------------------
+def report_figs(run_dir,chk_start,chk_end,chk_stride,save=True):
+    #comp_analytic_steady_state(run_dir,save=save)
+    field_evo(run_dir,chk_start,chk_end,chk_stride,save=save)
 #--------------------------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------------------------
 def main():
-    run_dir    = r"/tmp/neso-tests/solvers/SimpleSOL/2Drot45/"
-    opts = dict(chk_num = None, save = True)
+    run_dir    = r"/home/oparry/code/NESO/example-runs/SimpleSOL/2Drot45"
+    chk_start=0
+    chk_end=100
+    chk_stride=20
 
-    report_figs(run_dir,**opts)
+    report_figs(run_dir,chk_start,chk_end,chk_stride,save=True)
 #--------------------------------------------------------------------------------------------------
 
 if __name__=='__main__':

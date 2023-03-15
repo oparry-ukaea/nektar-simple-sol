@@ -10,9 +10,9 @@ def read_an_src(fname,plot_style="line"):
 #--------------------------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------------------------
-def read_nektar_src(run_dir,chk_num,plot_style="points"):
-    nek_src = get_source("nektar", run_dir, chk_num=chk_num, label=f"Checkpoint {chk_num}")
-    nek_src.set_plot_kws(get_plot_style(plot_style))
+def read_nektar_src(run_dir,chk_num,plot_style="points",plot_style_kwargs={}, **kwargs):
+    nek_src = get_source("nektar", run_dir, chk_num=chk_num, label=f"Checkpoint {chk_num}",**kwargs)
+    nek_src.set_plot_kws(get_plot_style(plot_style, **plot_style_kwargs))
     return nek_src
 #--------------------------------------------------------------------------------------------------
 
